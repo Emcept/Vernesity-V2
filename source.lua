@@ -1,6 +1,6 @@
 -- // Vernesity V2 // --
 -- // Made by Emmy#4846 // --
-
+-- // This UI Library is new, so if you find any bugs, please DM me on Discord! (Emmy#4846) // --
 
 local Library = {}
 
