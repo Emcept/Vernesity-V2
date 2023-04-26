@@ -1453,11 +1453,11 @@ function Library:Window(title, subtitle, Theme)
 				})
 				Button1.MouseButton1Click:Connect(function()
 					close()
-					callback('Button1')
+					callback(args[1])
 				end)
 				Button2.MouseButton1Click:Connect(function()
 					close()
-					callback('Button2')
+					callback(args[2])
 				end)
 			elseif type(args[1]) == 'number' and type(args[2]) == 'number' then
 				local Button1 = Library:New('ImageButton', {
