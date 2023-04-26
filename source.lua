@@ -2,6 +2,7 @@
 -- // Made by Emmy#4846 // --
 
 
+
 local Library = {}
 
 local MainOriginalSize = UDim2.new(0, 475, 0, 275)
@@ -4688,6 +4689,10 @@ function Library:Window(title, subtitle, Theme)
 						end)
 					end
 				end)
+				
+				function PlayerList:GetElement()
+					return PlayerListUI
+				end
 
 				function PlayerList:Edit(newName, newFunc)
 					name = newName
