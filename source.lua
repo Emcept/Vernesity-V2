@@ -2,6 +2,7 @@
 -- // Made by Emmy#4846 // --
 
 
+
 local Library = {}
 
 local MainOriginalSize = UDim2.new(0, 475, 0, 275)
@@ -998,6 +999,17 @@ function Library:Window(title, subtitle, Theme)
 		end
 		wait(0.75)
 		resizable = true
+	end
+	
+	local UIToggled = false
+	
+	function Window:ToggleUI()
+		UIToggled = not UIToggled
+		if UIToggled then
+			WindowUI.Enabled = false
+		else
+			WindowUI.Enabled = true
+		end
 	end
 
 	Minimize.Activated:Connect(function()
