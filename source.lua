@@ -34,7 +34,7 @@ Library.Themes = {
 		WindowColor = Color3.fromRGB(42, 49, 55),
 		TabColor = Color3.fromRGB(48, 55, 62),
 		ElementColor = Color3.fromRGB(58, 65, 73),
-		SecondaryElementColor = Color3.fromRGB(89, 133, 171)
+		SecondaryElementColor = Color3.fromRGB(98, 160, 211)
 	},
 	GrayTheme = {
 		TextColor = Color3.fromRGB(240, 240, 240),
@@ -310,7 +310,7 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 				Library:New('UIStroke', {
 					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 					Transparency = 1,
-					Color = Color3.fromRGB(110, 208, 110)
+					Color = Color3.fromRGB(98, 160, 211)
 				})
 			}),
 			Library:New('ImageButton', {
@@ -690,7 +690,7 @@ function Library:Window(title, subtitle, Theme)
 				Library:New('Frame', {
 					Name = 'Something',
 					Size = UDim2.new(0, 2, 0, 17),
-					Position = UDim2.new(0.06, 0, 0, 4),
+					Position = UDim2.new(0.055, 0, 0, 4),
 					BorderSizePixel = 0,
 					BackgroundTransparency = 1,
 					BackgroundColor3 = Theme.SecondaryElementColor
@@ -1689,7 +1689,7 @@ function Library:Window(title, subtitle, Theme)
 		function Library:SelectTab(tab, btn)
 			SelectedTab = tab
 			SelectedTabButton = btn
-			local X = 0.065
+			local X = 0.055
 			local add = 25
 			local startingpos = 4
 			local found = false
@@ -3888,7 +3888,7 @@ function Library:Window(title, subtitle, Theme)
 						CornerRadius = UDim.new(0, 3)
 					}),
 					Library:New('TextLabel', {
-						Name = "Text",
+						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
 						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
@@ -3903,7 +3903,7 @@ function Library:Window(title, subtitle, Theme)
 						TextXAlignment = Enum.TextXAlignment.Left
 					}),
 					Library:New('TextLabel', {
-						Name = "InfoText",
+						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
 						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
@@ -3944,7 +3944,7 @@ function Library:Window(title, subtitle, Theme)
 						Text = ''
 					}),
 					Library:New('Frame', {
-						Name = "KeybindFrame",
+						Name = 'KeybindFrame',
 						AnchorPoint = Vector2.new(1, 0),
 						Size = UDim2.new(0, 138, 0, 30),
 						BackgroundTransparency = 1,
@@ -3952,7 +3952,7 @@ function Library:Window(title, subtitle, Theme)
 						BorderSizePixel = 0
 					}, {
 						Library:New('TextButton', {
-							Name = "KeybindButton",
+							Name = 'KeybindButton',
 							AnchorPoint = Vector2.new(1, 0.5),
 							Size = UDim2.new(0, 31, 0, 20),
 							Position = UDim2.new(0.7, 0, 0, 15),
@@ -3960,7 +3960,7 @@ function Library:Window(title, subtitle, Theme)
 							TextTransparency = 0.1,
 							BorderSizePixel = 0,
 							BackgroundColor3 = Theme.WindowColor,
-							Text = "",
+							Text = '',
 							ClipsDescendants = true
 						}, {
 							Library:New('UICorner', {
@@ -4295,7 +4295,7 @@ function Library:Window(title, subtitle, Theme)
 						CornerRadius = UDim.new(0, 3)
 					}),
 					Library:New('TextLabel', {
-						Name = "Text",
+						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
 						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
@@ -4337,7 +4337,7 @@ function Library:Window(title, subtitle, Theme)
 						})
 					}),
 					Library:New('ScrollingFrame', {
-						Name = "Elements",
+						Name = 'Elements',
 						Selectable = false,
 						Size = Library:SetSize(UDim2.new(0, 360, 0, 0), 'X'),
 						Position = UDim2.new(0, 0, 0, 30),
@@ -4356,14 +4356,14 @@ function Library:Window(title, subtitle, Theme)
 						})
 					}),
 					Library:New('TextButton', {
-						Name = "Button",
+						Name = 'Button',
 						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
-						Text = ""
+						Text = ''
 					}),
 					Library:New('Frame', {
-						Name = "SearchFrame",
+						Name = 'SearchFrame',
 						AnchorPoint = Vector2.new(1, 0),
 						Size = UDim2.new(0, 135, 0, 30),
 						Position = UDim2.new(1, 0, 0, 0),
@@ -4371,7 +4371,7 @@ function Library:Window(title, subtitle, Theme)
 						BackgroundTransparency = 1
 					}, {
 						Library:New('Frame', {
-							Name = "SearchFrame",
+							Name = 'SearchFrame',
 							AnchorPoint = Vector2.new(1, 0),
 							Size = UDim2.new(0, 96, 0, 16),
 							Position = UDim2.new(0.72, 0, 0, 7),
@@ -4387,7 +4387,7 @@ function Library:Window(title, subtitle, Theme)
 								Color = Theme.SecondaryElementColor
 							}),
 							Library:New('TextBox', {
-								Name = "SearchTextBox",
+								Name = 'SearchTextBox',
 								AnchorPoint = Vector2.new(0.5, 0.5),
 								AutomaticSize = Enum.AutomaticSize.X,
 								Size = UDim2.new(0, 84, 0, 16),
@@ -4398,7 +4398,7 @@ function Library:Window(title, subtitle, Theme)
 								TextSize = 11,
 								TextColor3 = Theme.TextColor,
 								TextTransparency = 0.1,
-								Text = "",
+								Text = '',
 								Font = Enum.Font.Gotham,
 								PlaceholderColor3 = Theme.TextColor,
 								PlaceholderText = 'Search...'
@@ -4518,7 +4518,7 @@ function Library:Window(title, subtitle, Theme)
 						Parent = DropdownUI.Elements
 					}, {
 						Library:New('TextLabel', {
-							Name = "Text",
+							Name = 'Text',
 							AnchorPoint = Vector2.new(0.5, 0.5),
 							Size = Library:SetSize(UDim2.new(0, 325, 0, 15), 'X'),
 							BackgroundTransparency = 1,
@@ -4533,11 +4533,11 @@ function Library:Window(title, subtitle, Theme)
 							TextXAlignment = Enum.TextXAlignment.Left
 						}),
 						Library:New('TextButton', {
-							Name = "Button",
+							Name = 'Button',
 							Size = Library:SetSize(UDim2.new(0, 360, 0, 15), 'X'),
 							BackgroundTransparency = 1,
 							BorderSizePixel = 0,
-							Text = ""
+							Text = ''
 						})
 					})
 
