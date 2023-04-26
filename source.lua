@@ -1,6 +1,5 @@
 -- // Vernesity V2 // --
 -- // Made by Emmy#4846 // --
--- // This UI Library is new, so if you find any bugs, please DM me on Discord! (Emmy#4846) // --
 
 
 local Library = {}
@@ -17,7 +16,7 @@ local UIS = game:GetService('UserInputService')
 
 Library.Icons = {
 	Circle = asset..'4560909609',
-	Resize = asset..'11457659804',
+	Resize = asset..'13258898744',
 	Close = asset..'3926305904',
 	Minimize = asset..'3926307971',
 	Search = asset..'12766449817',
@@ -197,8 +196,10 @@ function Library:MakeDraggable(obj, Dragger, speed)
 end
 
 
-function Library:EnableKeySystem(title, subtitle, note, key)
+function Library:EnableKeySystem(title, subtitle, note, keys)
+	
 	Load = false
+	
 	local KeySystemUI = Library:New('ScreenGui', {
 		Name = 'Vernesity V2 Key System',
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -327,7 +328,9 @@ function Library:EnableKeySystem(title, subtitle, note, key)
 	})
 
 	Library:MakeDraggable(KeySystemUI.Main)
+	
 	KeySystemUI.Parent = UIParent
+	
 	local speed = .5
 	Library:Tween(KeySystemUI.Main, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		Size = UDim2.new(0, 381, 0, 158)
@@ -404,7 +407,7 @@ function Library:EnableKeySystem(title, subtitle, note, key)
 			Transparency = 1
 		})
 		wait(.2)
-		if KeySystemUI.Main.TextBox.Text == key then
+		if table.find(keys, KeySystemUI.Main.TextBox.Text) then
 			Load = true
 			close()
 		end
@@ -721,7 +724,7 @@ function Library:Window(title, subtitle, Theme)
 		Active = true,
 		AnchorPoint = Vector2.new(1, 1),
 		BackgroundTransparency = 1,
-		Size = UDim2.new(0, 40, 0, 40),
+		Size = UDim2.new(0, 19, 0, 19),
 		Position = UDim2.new(1, 0, 1, 0),
 		BorderSizePixel = 0,
 		Parent = Main
@@ -729,14 +732,12 @@ function Library:Window(title, subtitle, Theme)
 		Library:New('ImageLabel', {
 			Name = 'ResizeImage',
 			Selectable = false,
-			Size = UDim2.new(0, 30, 0, 30),
+			Size = UDim2.new(0, 17, 0, 17),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0.125, 0, 0.125, 0),
 			Active = false,
 			BorderSizePixel = 0,
 			ImageColor3 = Theme.SecondaryElementColor,
 			Image = Library.Icons.Resize,
-			ImageRectSize = Vector2.new(620, 620),
 			ImageTransparency = 1
 		})
 	})
@@ -1096,7 +1097,7 @@ function Library:Window(title, subtitle, Theme)
 		Resizing = false
 	end
 
-	Resize.InputBegan:Connect(function(input)
+	ResizeImage.InputBegan:Connect(function(input)
 		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and resizable then
 			Library:Tween(ResizeImage, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 				ImageTransparency = 0
@@ -1114,6 +1115,7 @@ function Library:Window(title, subtitle, Theme)
 			end)
 		end
 	end)
+	
 	UIS.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			if Resizing and resizable then
@@ -1839,6 +1841,7 @@ function Library:Window(title, subtitle, Theme)
 			end
 
 			function Section:Button(buttonName, info, func)
+				
 				local Button = {}
 				local ButtonUI = Library:New('Frame', {
 					Name = buttonName,
@@ -2067,8 +2070,11 @@ function Library:Window(title, subtitle, Theme)
 
 				return Label
 			end
+			
+			
 
 			function Section:TextBox(textBoxName, info, defaultText, func)
+				
 				local TextBox = {}
 				local TextBoxUI = Library:New('Frame', {
 					Name = textBoxName,
@@ -2232,7 +2238,7 @@ function Library:Window(title, subtitle, Theme)
 						Transparency = 0
 					})
 				end)
-
+				
 				TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.FocusLost:Connect(function()
 					func(TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text)
 					Library:Tween(TextBoxUI.TextBoxFrame.TextBoxFrame.UIStroke, 0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
@@ -2310,6 +2316,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return TextBox
 			end
+			
+			
 
 			function Section:Interactable(interactableName, info, interactableText, func)
 				local Interactable = {}
@@ -2528,10 +2536,12 @@ function Library:Window(title, subtitle, Theme)
 
 				return Interactable
 			end
+			
+			
 
 			function Section:ColorPicker(colorPickerText, info, defaultColor, func)
+				
 				local ColorPicker = {}
-
 				local ColorPickerUI = Library:New('Frame', {
 					Name = colorPickerText,
 					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
@@ -2723,7 +2733,7 @@ function Library:Window(title, subtitle, Theme)
 				local mouse1down2 = false
 
 				Library:AddRippleEffect(ColorPickerUI.ColorPreviewFrame.ApplyButton)
-
+				
 				Library:MakeResizable({
 					Element = ColorPickerUI,
 					Direction = 'X'
@@ -2867,11 +2877,9 @@ function Library:Window(title, subtitle, Theme)
 						end
 					end
 				end)
-
 				function ColorPicker:GetCurrentColor()
 					return ColorPickerUI.ColorPreviewFrame.ColorPreview.BackgroundColor3
 				end
-
 				ColorPickerUI.ColorPreviewFrame.ApplyButton.Activated:Connect(function()
 					func(ColorPickerUI.ColorPreviewFrame.ColorPreview.BackgroundColor3)
 				end)
@@ -2899,10 +2907,12 @@ function Library:Window(title, subtitle, Theme)
 
 				return ColorPicker
 			end
+			
+			
 
 			function Section:Switch(switchName, info, toggled, func)
+				
 				local Switch = {}
-
 				local SwitchUI = Library:New('Frame', {
 					Name = switchName,
 					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
@@ -3185,11 +3195,12 @@ function Library:Window(title, subtitle, Theme)
 
 				return Switch
 			end
+			
+			
 
 			function Section:Paragraph(text1, text2)
-
+				
 				local Paragraph = {}
-
 				local ParagraphUI = Library:New('Frame', {
 					Name = text1,
 					Size = Library:SetSize(UDim2.new(0, 360, 0, 50), 'X'),
@@ -3277,6 +3288,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Paragraph
 			end
+			
+			
 
 			function Section:Toggle(ToggleName, info, toggled, func)
 				local Toggle = {}
@@ -3521,8 +3534,9 @@ function Library:Window(title, subtitle, Theme)
 				end
 
 				return Toggle
-
 			end
+			
+			
 
 			function Section:Slider(sliderName, info, minValue, maxValue, defaultValue, func)
 				local Slider = {}
@@ -3830,6 +3844,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Slider
 			end
+			
+			
 
 			function Section:Keybind(keybindName, info, default, func)
 				local Keybind = {}
@@ -4235,6 +4251,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Keybind
 			end
+			
+			
 
 			function Section:Dropdown(dropdownName, list, default, func)
 				local Dropdown = {}
@@ -4461,7 +4479,7 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				function Dropdown:Button(name)
-					
+
 					local Dropdown_Button = {}
 
 					local DropdownButton = Library:New('Frame', {
@@ -4496,7 +4514,7 @@ function Library:Window(title, subtitle, Theme)
 							Text = ""
 						})
 					})
-					
+
 					amountOfButtons = amountOfButtons + 1
 
 					Library:MakeResizable({
@@ -4605,33 +4623,33 @@ function Library:Window(title, subtitle, Theme)
 						end
 					end
 				end)
-				
+
 				function Dropdown:Edit(newDropdownName, newList, newDefault, newFunc)
 					dropdownName = newDropdownName
 					list = newList
 					default = newDefault
 					func = newFunc
-					
+
 					DropdownUI.Name = dropdownName
 					DropdownUI.Text.Text = dropdownName..': '..default
-					
+
 					amountOfButtons = 0
-					
+
 					for _, v in pairs(DropdownUI.Elements:GetChildren()) do
 						if v:IsA'Frame' then
 							v:Destroy()
 						end
 					end
-					
+
 					for _, name in pairs(list) do
 						Dropdown:Button(name)
 					end
-					
+
 					if Opened then
 						ChangeSize()
 					end
 				end
-				
+
 				function Dropdown:Remove()
 					amountOfButtons = 0
 					DropdownUI:Destroy()
@@ -4640,17 +4658,19 @@ function Library:Window(title, subtitle, Theme)
 				return Dropdown
 			end
 			
+			
+
 			function Section:PlayerList(name, func)
 				local PlayerList = {}
 				local PlayerTable = {}
 				local Run = true
-				
+
 				for _, v in pairs(game.Players:GetPlayers()) do
 					table.insert(PlayerTable, v.Name)
 				end
-				
+
 				local PlayerListUI = Section:Dropdown(name, PlayerTable, PlayerTable[1], func)
-				
+
 				game.Players.PlayerAdded:Connect(function(player)
 					if Run then
 						pcall(function()
@@ -4659,7 +4679,7 @@ function Library:Window(title, subtitle, Theme)
 						end)
 					end
 				end)
-				
+
 				game.Players.PlayerRemoving:Connect(function(player)
 					if Run then
 						pcall(function()
@@ -4668,18 +4688,18 @@ function Library:Window(title, subtitle, Theme)
 						end)
 					end
 				end)
-				
+
 				function PlayerList:Edit(newName, newFunc)
 					name = newName
 					func = newFunc
 					PlayerListUI:Edit(name, PlayerTable, PlayerTable[1], func)
 				end
-				
+
 				function PlayerList:Remove()
 					Run = false
 					PlayerListUI:Remove()
 				end
-				
+
 				return PlayerList
 			end
 
