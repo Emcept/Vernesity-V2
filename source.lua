@@ -34,7 +34,7 @@ Library.Themes = {
 		WindowColor = Color3.fromRGB(42, 49, 55),
 		TabColor = Color3.fromRGB(48, 55, 62),
 		ElementColor = Color3.fromRGB(58, 65, 73),
-		SecondaryElementColor = Color3.fromRGB(110, 208, 110)
+		SecondaryElementColor = Color3.fromRGB(89, 133, 171)
 	},
 	GrayTheme = {
 		TextColor = Color3.fromRGB(240, 240, 240),
