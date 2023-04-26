@@ -2,7 +2,6 @@
 -- // Made by Emmy#4846 // --
 
 
-
 local Library = {}
 
 local MainOriginalSize = UDim2.new(0, 475, 0, 275)
@@ -198,9 +197,9 @@ end
 
 
 function Library:EnableKeySystem(title, subtitle, note, keys)
-	
+
 	Load = false
-	
+
 	local KeySystemUI = Library:New('ScreenGui', {
 		Name = 'Vernesity V2 Key System',
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -329,9 +328,9 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 	})
 
 	Library:MakeDraggable(KeySystemUI.Main)
-	
+
 	KeySystemUI.Parent = UIParent
-	
+
 	local speed = .5
 	Library:Tween(KeySystemUI.Main, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		Size = UDim2.new(0, 381, 0, 158)
@@ -422,13 +421,13 @@ function Library:Window(title, subtitle, Theme)
 	local Window = {}
 	local Main = nil
 
-	local onClose, onMinimize = function() end, function() end
+	local onCloseFunctions, onMinimizeFunctions = {}, {}
 
 	function Window:OnClose(func)
-		onClose = func
+		table.insert(onCloseFunctions, func)
 	end
 	function Window:OnMinimize(func)
-		onMinimize = func
+		table.insert(onMinimizeFunctions, func)
 	end
 
 	local ColorChangable = {
@@ -465,6 +464,12 @@ function Library:Window(title, subtitle, Theme)
 
 	function Window:GetTheme()
 		return Theme
+	end
+
+	local onThemeChangedFunctions = {}
+
+	function Window:OnThemeChanged(func)
+		table.insert(onThemeChangedFunctions, func)
 	end
 
 	function Window:ChangeTheme(newTheme)
@@ -522,6 +527,10 @@ function Library:Window(title, subtitle, Theme)
 					warn('Element:', Table.Element..', Property:', Table.Property..', Color:', a)
 				end
 			end
+		end
+
+		for _, func in onThemeChangedFunctions do
+			func()
 		end
 	end
 
@@ -993,7 +1002,9 @@ function Library:Window(title, subtitle, Theme)
 
 	Minimize.Activated:Connect(function()
 		minimized = not minimized
-		onMinimize(minimized)
+		for _, func in pairs(onMinimizeFunctions) do
+			func(minimized)
+		end
 		if minimized then
 			Window:Minimize()
 		else
@@ -1048,7 +1059,9 @@ function Library:Window(title, subtitle, Theme)
 	end
 
 	Close.Activated:Connect(function()
-		onClose()
+		for _, func in pairs(onCloseFunctions) do
+			func()
+		end
 		CloseUI()
 	end)
 
@@ -1116,7 +1129,7 @@ function Library:Window(title, subtitle, Theme)
 			end)
 		end
 	end)
-	
+
 	UIS.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			if Resizing and resizable then
@@ -1842,7 +1855,7 @@ function Library:Window(title, subtitle, Theme)
 			end
 
 			function Section:Button(buttonName, info, func)
-				
+
 				local Button = {}
 				local ButtonUI = Library:New('Frame', {
 					Name = buttonName,
@@ -2071,11 +2084,11 @@ function Library:Window(title, subtitle, Theme)
 
 				return Label
 			end
-			
-			
+
+
 
 			function Section:TextBox(textBoxName, info, defaultText, func)
-				
+
 				local TextBox = {}
 				local TextBoxUI = Library:New('Frame', {
 					Name = textBoxName,
@@ -2239,7 +2252,7 @@ function Library:Window(title, subtitle, Theme)
 						Transparency = 0
 					})
 				end)
-				
+
 				TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.FocusLost:Connect(function()
 					func(TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text)
 					Library:Tween(TextBoxUI.TextBoxFrame.TextBoxFrame.UIStroke, 0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
@@ -2317,8 +2330,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return TextBox
 			end
-			
-			
+
+
 
 			function Section:Interactable(interactableName, info, interactableText, func)
 				local Interactable = {}
@@ -2537,11 +2550,11 @@ function Library:Window(title, subtitle, Theme)
 
 				return Interactable
 			end
-			
-			
+
+
 
 			function Section:ColorPicker(colorPickerText, info, defaultColor, func)
-				
+
 				local ColorPicker = {}
 				local ColorPickerUI = Library:New('Frame', {
 					Name = colorPickerText,
@@ -2734,7 +2747,7 @@ function Library:Window(title, subtitle, Theme)
 				local mouse1down2 = false
 
 				Library:AddRippleEffect(ColorPickerUI.ColorPreviewFrame.ApplyButton)
-				
+
 				Library:MakeResizable({
 					Element = ColorPickerUI,
 					Direction = 'X'
@@ -2908,11 +2921,11 @@ function Library:Window(title, subtitle, Theme)
 
 				return ColorPicker
 			end
-			
-			
+
+
 
 			function Section:Switch(switchName, info, toggled, func)
-				
+
 				local Switch = {}
 				local SwitchUI = Library:New('Frame', {
 					Name = switchName,
@@ -3196,11 +3209,11 @@ function Library:Window(title, subtitle, Theme)
 
 				return Switch
 			end
-			
-			
+
+
 
 			function Section:Paragraph(text1, text2)
-				
+
 				local Paragraph = {}
 				local ParagraphUI = Library:New('Frame', {
 					Name = text1,
@@ -3289,8 +3302,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Paragraph
 			end
-			
-			
+
+
 
 			function Section:Toggle(ToggleName, info, toggled, func)
 				local Toggle = {}
@@ -3536,8 +3549,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Toggle
 			end
-			
-			
+
+
 
 			function Section:Slider(sliderName, info, minValue, maxValue, defaultValue, func)
 				local Slider = {}
@@ -3845,8 +3858,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Slider
 			end
-			
-			
+
+
 
 			function Section:Keybind(keybindName, info, default, func)
 				local Keybind = {}
@@ -4252,8 +4265,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Keybind
 			end
-			
-			
+
+
 
 			function Section:Dropdown(dropdownName, list, default, func)
 				local Dropdown = {}
@@ -4658,8 +4671,8 @@ function Library:Window(title, subtitle, Theme)
 
 				return Dropdown
 			end
-			
-			
+
+
 
 			function Section:PlayerList(name, func)
 				local PlayerList = {}
@@ -4689,7 +4702,7 @@ function Library:Window(title, subtitle, Theme)
 						end)
 					end
 				end)
-				
+
 				function PlayerList:GetElement()
 					return PlayerListUI
 				end
