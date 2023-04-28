@@ -153,7 +153,10 @@ print(tostring(Toggle:IsToggled()))
 ```Lua
 local Slider = Section:Slider(<Slider Name>, <Slider Description>, <Minimum Value>, <Maximum Value>, <Default Value>, <Function>)
 ```
-
+### Getting a slider's current value
+```Lua
+print(Slider:GetValue())
+```
 
 ## Creating ColorPickers
 ```Lua
