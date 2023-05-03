@@ -81,8 +81,8 @@ local function loadFunction()
 			task.wait()
 		until
 		Load
+		wait(1)
 	end
-	wait(1)
 end
 
 function Library:GetDevice()
