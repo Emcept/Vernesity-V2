@@ -35,7 +35,7 @@ local Window = Library:Window(<Title>, <Subtitle>, <Theme (optional)>)
 
 ### Themes:
 > DarkTheme  
-> GrayTheme 
+> GrayTheme  
 > LightTheme  
 > BlueTheme  
 > PurpleTheme  
