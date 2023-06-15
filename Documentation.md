@@ -2,7 +2,7 @@
 
 
 # Vernesity UI Library
-## Made by Emmy#4846
+## Made by Emmy (Discord: emcept)
 
 ## Features:
  - Resizable
