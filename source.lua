@@ -1,5 +1,5 @@
 -- // Vernesity V2 // --
--- // Made by Emmy#4846 // --
+-- // Made by Emmy (Discord: emcept) // --
 
 
 
