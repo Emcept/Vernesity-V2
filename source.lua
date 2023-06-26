@@ -212,7 +212,7 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 			Size = UDim2.new(0, 0, 0, 0),
 			ClipsDescendants = true,
 			Position = UDim2.new(0.5, 0, 0.5, 0),
-			BackgroundColor3 = Color3.fromRGB(44, 47, 49)
+			BackgroundColor3 = Color3.fromRGB(42, 49, 55)
 		}, {
 			Library:New('UICorner', {
 				CornerRadius = UDim.new(0, 3)
@@ -295,7 +295,7 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 				Size = UDim2.new(0, 150, 0, 21),
 				Position = UDim2.new(0, 338, 0, 50),
 				BackgroundTransparency = 1,
-				BackgroundColor3 = Color3.fromRGB(59, 62, 64),
+				BackgroundColor3 = Color3.fromRGB(58, 65, 73),
 				FontSize = Enum.FontSize.Size14,
 				PlaceholderColor3 = Color3.fromRGB(255, 255, 255),
 				TextSize = 12,
@@ -704,7 +704,6 @@ function Library:Window(title, subtitle, Theme)
 			Position = UDim2.new(0, 11, 0, 1),
 			FontSize = Enum.FontSize.Size14,
 			RichText = true,
-			LineHeight = 0.95,
 			TextTransparency = 0.1,
 			TextSize = 13,
 			TextColor3 = Theme.TextColor,
@@ -1000,9 +999,9 @@ function Library:Window(title, subtitle, Theme)
 		wait(0.75)
 		resizable = true
 	end
-	
+
 	local UIToggled = false
-	
+
 	function Window:ToggleUI()
 		UIToggled = not UIToggled
 		if UIToggled then
@@ -4113,6 +4112,15 @@ function Library:Window(title, subtitle, Theme)
 						KeybindFrame:CaptureFocus()
 					end
 				end)
+				
+				game:GetService('UserInputService').InputBegan:Connect(function(input, gameProcessed)
+					if not game:GetService('UserInputService'):GetFocusedTextBox() and Choosing == false then
+						if input.KeyCode.Name:upper() == currentKey:upper() then
+							func(currentKey)
+							ripple()
+						end
+					end
+				end)
 
 				if Device == 'PC' then
 					KeybindFrame.Parent.Activated:Connect(function()
@@ -4156,14 +4164,6 @@ function Library:Window(title, subtitle, Theme)
 							Library:Tween(KeybindFrame.Parent:FindFirstChild('UIStroke'), 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 								Transparency = 1
 							})
-						end
-					end)
-					game:GetService('UserInputService').InputBegan:Connect(function(input, gameProcessed)
-						if not game:GetService('UserInputService'):GetFocusedTextBox() and Choosing == false then
-							if input.KeyCode.Name:upper() == currentKey:upper() then
-								func(currentKey)
-								ripple()
-							end
 						end
 					end)
 				elseif Device == 'Mobile' then
