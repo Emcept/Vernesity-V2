@@ -1066,7 +1066,7 @@ function Library:Window(title, subtitle, Theme)
 			Size = UDim2.new(2, 0, 2, 0)
 		})
 		wait(0.75)
-		Main:Destroy()
+		WindowUI:Destroy()
 	end
 
 	Close.Activated:Connect(function()
