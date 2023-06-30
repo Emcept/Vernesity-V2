@@ -4116,8 +4116,8 @@ function Library:Window(title, subtitle, Theme)
 				game:GetService('UserInputService').InputBegan:Connect(function(input, gameProcessed)
 					if not game:GetService('UserInputService'):GetFocusedTextBox() and Choosing == false then
 						if input.KeyCode.Name:upper() == currentKey:upper() then
+							task.spawn(ripple)
 							func(currentKey)
-							ripple()
 						end
 					end
 				end)
@@ -4233,8 +4233,8 @@ function Library:Window(title, subtitle, Theme)
 							Color = 'SecondaryElementColor'
 						})
 						MobileButton.Button.MouseButton1Click:Connect(function()
+							task.spawn(ripple)
 							func(KeybindFrame.Text)
-							ripple()
 						end)
 					end
 					KeybindFrame.FocusLost:Connect(function()
