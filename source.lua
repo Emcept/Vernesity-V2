@@ -85,6 +85,22 @@ local function loadFunction()
 	end
 end
 
+function Library:CharacterToKeyCode(char)
+	for i, Keycode in Enum.KeyCode:GetEnumItems() do
+		if Keycode.Value == string.byte(char) then
+			return Keycode
+		end
+	end
+end
+
+function Library:KeyCodeToCharacter(keyCode)
+	if keyCode.Value < 127 and keyCode.Value > 33 then
+		return string.char(keyCode.Value)
+	else
+		return keyCode.Name
+	end
+end
+
 function Library:GetDevice()
 	if UIS.TouchEnabled and game.Players.LocalPlayer.PlayerGui:FindFirstChild('TouchGui'):FindFirstChild('TouchControlFrame') then
 		return 'Mobile'
@@ -395,7 +411,7 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 		tween.Completed:Wait()
 		KeySystemUI:Destroy()
 	end
-	KeySystemUI.Main.Close.MouseButton1Click:Connect(function()
+	KeySystemUI.Main.Close.Activated:Connect(function()
 		close()
 	end)
 	KeySystemUI.Main.TextBox.Focused:Connect(function()
@@ -641,7 +657,7 @@ function Library:Window(title, subtitle, Theme)
 				ImageTransparency = 0.8
 			})
 			g.ClipsDescendants = true
-			local len, size = 0.7, nil
+			local len, size = 1, nil
 			local x, y = (ms.X - Circle.AbsolutePosition.X), (ms.Y - Circle.AbsolutePosition.Y)
 			Circle.Position = UDim2.new(0, x, 0, y)
 			if g.AbsoluteSize.X >= g.AbsoluteSize.Y then
@@ -650,9 +666,9 @@ function Library:Window(title, subtitle, Theme)
 				size = (g.AbsoluteSize.Y * 1.5)
 			end
 			Circle:TweenSizeAndPosition(UDim2.new(0, size, 0, size), UDim2.new(0.5, (-size / 2), 0.5, (-size / 2)), 'Out', 'Quad', len, true, nil)
-			for i = 1, 20 do
-				Circle.ImageTransparency = Circle.ImageTransparency + 0.05
-				wait(len / 8)
+			for i = 1, 40 do
+				Circle.ImageTransparency = Circle.ImageTransparency + 0.025
+				wait(len / 13)
 			end
 			Circle:Destroy()
 		end)
@@ -701,7 +717,7 @@ function Library:Window(title, subtitle, Theme)
 			Name = 'Title',
 			Size = UDim2.new(0, 150, 0, 31),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 11, 0, 1),
+			Position = UDim2.new(0, 11, 0, 0),
 			FontSize = Enum.FontSize.Size14,
 			RichText = true,
 			TextTransparency = 0.1,
@@ -715,7 +731,7 @@ function Library:Window(title, subtitle, Theme)
 			Name = 'Subtitle',
 			Size = UDim2.new(0, 88, 0, 20),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0, 11, 0, 26),
+			Position = UDim2.new(0, 11, 0, 25),
 			RichText = true,
 			FontSize = Enum.FontSize.Size12,
 			TextTransparency = 0.2,
@@ -1357,7 +1373,7 @@ function Library:Window(title, subtitle, Theme)
 					Property = 'BackgroundColor3',
 					Color = 'SecondaryElementColor'
 				})
-				Button.MouseButton1Click:Connect(function()
+				Button.Activated:Connect(function()
 					close()
 					callback()
 				end)
@@ -1384,7 +1400,7 @@ function Library:Window(title, subtitle, Theme)
 					Property = 'ImageColor3',
 					Color = 'TextColor'
 				})
-				Button.MouseButton1Click:Connect(function()
+				Button.Activated:Connect(function()
 					close()
 					callback()
 				end)
@@ -1450,11 +1466,11 @@ function Library:Window(title, subtitle, Theme)
 					Property = 'BackgroundColor3',
 					Color = 'SecondaryElementColor'
 				})
-				Button1.MouseButton1Click:Connect(function()
+				Button1.Activated:Connect(function()
 					close()
 					callback(args[1])
 				end)
-				Button2.MouseButton1Click:Connect(function()
+				Button2.Activated:Connect(function()
 					close()
 					callback(args[2])
 				end)
@@ -1501,11 +1517,11 @@ function Library:Window(title, subtitle, Theme)
 					Property = 'ImageColor3',
 					Color = 'TextColor'
 				})
-				Button1.MouseButton1Click:Connect(function()
+				Button1.Activated:Connect(function()
 					close()
 					callback('Button1')
 				end)
-				Button2.MouseButton1Click:Connect(function()
+				Button2.Activated:Connect(function()
 					close()
 					callback('Button2')
 				end)
@@ -3425,7 +3441,7 @@ function Library:Window(title, subtitle, Theme)
 							}),
 							Library:New('ImageLabel', {
 								Name = 'Image',
-								Selectable = true,
+								Selectable = false,
 								ZIndex = 0,
 								AnchorPoint = Vector2.new(0.5, 0.5),
 								Size = UDim2.new(0, 16, 0, 16),
@@ -3647,7 +3663,7 @@ function Library:Window(title, subtitle, Theme)
 					}),
 					Library:New('TextButton', {
 						Name = 'Slider',
-						Selectable = false,
+						Selectable = true,
 						AnchorPoint = Vector2.new(0.25, 0),
 						ClipsDescendants = true,
 						Size = Library:SetSize(UDim2.new(0, 300, 0, 5), 'X'),
@@ -3974,7 +3990,6 @@ function Library:Window(title, subtitle, Theme)
 					})
 				})
 
-				local KeybindFrame
 				local class
 
 				if Device == 'PC' then
@@ -3983,7 +3998,7 @@ function Library:Window(title, subtitle, Theme)
 					class = 'TextBox'
 				end
 
-				KeybindFrame = Library:New(class, {
+				local KeybindFrame = Library:New(class, {
 					Name = 'Keybind',
 					Active = false,
 					AnchorPoint = Vector2.new(0.5, 0.5),
@@ -4112,7 +4127,7 @@ function Library:Window(title, subtitle, Theme)
 						KeybindFrame:CaptureFocus()
 					end
 				end)
-				
+
 				game:GetService('UserInputService').InputBegan:Connect(function(input, gameProcessed)
 					if not game:GetService('UserInputService'):GetFocusedTextBox() and Choosing == false then
 						if input.KeyCode.Name:upper() == currentKey:upper() then
@@ -4132,39 +4147,24 @@ function Library:Window(title, subtitle, Theme)
 							TextColor3 = Theme.SecondaryElementColor
 						})
 						KeybindFrame.Text = '. . .'
-						local input = game:GetService('UserInputService').InputBegan:Wait()
-						if input.KeyCode.Name ~= 'Unknown' and input.UserInputType == Enum.UserInputType.Keyboard then
-							currentKey = input.KeyCode.Name
-							KeybindFrame.Text = currentKey
-							task.spawn(function()
-								task.wait(0.05)
-								Choosing = false
-							end)
-							Library:Tween(KeybindFrame, 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-								TextColor3 = Theme.TextColor
-							})
-							Library:Tween(KeybindFrame.Parent:FindFirstChild('UIStroke'), 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-								Transparency = 1
-							})
-						else
-							repeat 
-								input = game:GetService('UserInputService').InputBegan:Wait()
-								Choosing = true
-							until
-							input.KeyCode.Name ~= 'Unknown' and input.UserInputType == Enum.UserInputType.Keyboard
-							currentKey = input.KeyCode.Name
-							KeybindFrame.Text = currentKey
-							task.spawn(function()
-								task.wait(0.05)
-								Choosing = false
-							end)
-							Library:Tween(KeybindFrame, 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-								TextColor3 = Theme.TextColor
-							})
-							Library:Tween(KeybindFrame.Parent:FindFirstChild('UIStroke'), 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-								Transparency = 1
-							})
-						end
+						local input
+						repeat
+							input = game:GetService('UserInputService').InputBegan:Wait()
+							Choosing = true
+						until
+						input.KeyCode.Name ~= 'Unknown' and input.UserInputType == Enum.UserInputType.Keyboard
+						currentKey = input.KeyCode.Name
+						KeybindFrame.Text = Library:KeyCodeToCharacter(input.KeyCode):upper()
+						task.spawn(function()
+							task.wait(0.05)
+							Choosing = false
+						end)
+						Library:Tween(KeybindFrame, 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+							TextColor3 = Theme.TextColor
+						})
+						Library:Tween(KeybindFrame.Parent:FindFirstChild('UIStroke'), 0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+							Transparency = 1
+						})
 					end)
 				elseif Device == 'Mobile' then
 					KeybindFrame.Focused:Connect(function()
@@ -4232,12 +4232,18 @@ function Library:Window(title, subtitle, Theme)
 							Property = 'Color',
 							Color = 'SecondaryElementColor'
 						})
-						MobileButton.Button.MouseButton1Click:Connect(function()
+						MobileButton.Button.Activated:Connect(function()
 							task.spawn(ripple)
 							func(KeybindFrame.Text)
 						end)
 					end
 					KeybindFrame.FocusLost:Connect(function()
+						if #KeybindFrame.Text > 1 then
+							warn('Error: Invalid input length. Please enter only a single character for the keybind.')
+							KeybindFrame.Text = currentKey
+						else
+							currentKey = Library:CharacterToKeyCode(KeybindFrame.Text).Name
+						end
 						if MobileButton ~= nil then
 							MobileButton:FindFirstChild('Text').Text = KeybindFrame.Text
 						end
@@ -4737,6 +4743,560 @@ function Library:Window(title, subtitle, Theme)
 		end
 
 		return Tab
+	end
+
+	function Window:CommandBar(cmdBarName, Prefix)
+		local CommandBar = {}
+		local Cmds = {}
+		
+		if #Prefix > 1 then
+			error('Error: Invalid input length. Please enter only a single character for the prefix.')
+		end
+
+		local CommandBarUI = Library:New('Frame', {
+			Name = cmdBarName,
+			Size = UDim2.new(0, 381, 0, 227),
+			BorderSizePixel = 0,
+			Position = UDim2.new(1, -381, 1, -227),
+			BackgroundColor3 = Theme.WindowColor,
+			ClipsDescendants = true,
+			Active = true,
+			Parent = WindowUI
+		}, {
+			Library:New('UICorner', {
+				CornerRadius = UDim.new(0, 5)
+			}),
+			Library:New('ScrollingFrame', {
+				Name = 'Commands',
+				AnchorPoint = Vector2.new(0.5, 0),
+				Size = UDim2.new(0, 381, 0, 159),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 190, 0, 64),
+				Active = true,
+				BorderSizePixel = 0,
+				CanvasSize = UDim2.new(0, 0, 0, 0),
+				ScrollingDirection = Enum.ScrollingDirection.Y,
+				ScrollBarImageColor3 = Theme.TextColor,
+				ScrollBarThickness = 3
+			}, {
+				Library:New('UIListLayout', {
+					HorizontalAlignment = Enum.HorizontalAlignment.Center,
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					Padding = UDim.new(0, 3)
+				})
+			}),
+			Library:New('Frame', {
+				Name = 'Dragger',
+				Size = UDim2.new(0, 352, 0, 35),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0
+			}),
+			Library:New('Frame', {
+				Name = 'RunCommandFrame',
+				AnchorPoint = Vector2.new(0.5, 0),
+				Size = UDim2.new(0, 372, 0, 24),
+				Position = UDim2.new(0, 190, 0, 35),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Theme.ElementColor,
+			}, {
+				Library:New('TextBox', {
+					Name = 'RunCommand',
+					Selectable = false,
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Size = UDim2.new(0, 358, 0, 24),
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					Active = true,
+					BorderSizePixel = 0,
+					FontSize = Enum.FontSize.Size12,
+					PlaceholderColor3 = Theme.TextColor,
+					TextSize = 12,
+					TextTransparency = 0.2,
+					TextColor3 = Theme.TextColor,
+					PlaceholderText = 'Enter command...',
+					Text = '',
+					Font = Enum.Font.GothamMedium,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					BackgroundTransparency = 1
+				}),
+				Library:New('UICorner', {
+					CornerRadius = UDim.new(0, 3)
+				})
+			}),
+			Library:New('TextBox', {
+				Name = 'Prefix',
+				Selectable = false,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Size = UDim2.new(0, 25, 0, 25),
+				Position = UDim2.new(0, 291, 0, 17),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Theme.ElementColor,
+				FontSize = Enum.FontSize.Size14,
+				PlaceholderColor3 = Theme.TextColor,
+				TextSize = 14,
+				TextTransparency = 0.1,
+				TextColor3 = Theme.TextColor,
+				Text = Prefix,
+				Font = Enum.Font.GothamMedium
+			}, {
+				Library:New('UICorner', {
+					CornerRadius = UDim.new(0, 3)
+				})
+			}),
+			Library:New('TextLabel', {
+				Name = 'Title',
+				Size = UDim2.new(0, 284, 0, 36),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0.029, 0, 0, 0),
+				BorderSizePixel = 0,
+				FontSize = Enum.FontSize.Size14,
+				TextSize = 13,
+				TextColor3 = Theme.TextColor,
+				Text = cmdBarName,
+				Font = Enum.Font.GothamMedium,
+				TextTransparency = 0.1,
+				TextXAlignment = Enum.TextXAlignment.Left
+			}),
+			Library:New('ImageButton', {
+				Name = 'Close',
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 355, 0, 7),
+				ImageColor3 = Theme.TextColor,
+				ImageTransparency = 0.1,
+				ImageRectOffset = Vector2.new(284, 4),
+				Image = Library.Icons.Close,
+				ImageRectSize = Vector2.new(24, 24)
+			}),
+			Library:New('ImageButton', {
+				Name = 'Minimize',
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 327, 0, 7),
+				ImageColor3 = Theme.TextColor,
+				ImageTransparency = 0.1,
+				ImageRectOffset = Vector2.new(884, 284),
+				Image = Library.Icons.Minimize,
+				ImageRectSize = Vector2.new(36, 36)
+			})
+		})
+
+		Library:MakeDraggable(CommandBarUI, CommandBarUI.Dragger)
+
+		CommandBarUI.Commands.UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+			Library:Tween(CommandBarUI.Commands, 0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+				CanvasSize = UDim2.new(0, CommandBarUI.Commands.UIListLayout.AbsoluteContentSize.X, 0, CommandBarUI.Commands.UIListLayout.AbsoluteContentSize.Y)
+			})
+		end)
+
+		Library:SetColor({
+			Element = CommandBarUI,
+			Property = 'BackgroundColor3',
+			Color = 'WindowColor'
+		}, {
+			Element = CommandBarUI.Commands,
+			Property = 'ScrollBarImageColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.RunCommandFrame,
+			Property = 'BackgroundColor3',
+			Color = 'ElementColor'
+		}, {
+			Element = CommandBarUI.RunCommandFrame.RunCommand,
+			Property = 'TextColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.RunCommandFrame.RunCommand,
+			Property = 'PlaceholderColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.Prefix,
+			Property = 'BackgroundColor3',
+			Color = 'ElementColor'
+		}, {
+			Element = CommandBarUI.Prefix,
+			Property = 'TextColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.Prefix,
+			Property = 'PlaceholderColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.Title,
+			Property = 'TextColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.Close,
+			Property = 'ImageColor3',
+			Color = 'TextColor'
+		}, {
+			Element = CommandBarUI.Minimize,
+			Property = 'ImageColor3',
+			Color = 'TextColor'
+		})
+		
+		local function CloseCommandUI()
+			CommandBarUI.DescendantAdded:Connect(function(d)
+				d:Destroy()
+			end)
+			local tween
+			for i, v in pairs(CommandBarUI:GetDescendants()) do
+				pcall(function()
+					tween = Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						BackgroundTransparency = 1
+					})
+				end)
+				pcall(function()
+					tween = Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						ScrollBarImageTransparency = 1
+					})
+				end)
+				pcall(function()
+					tween = Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						TextTransparency = 1
+					})
+				end)
+				pcall(function()
+					tween = Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						ImageTransparency = 1
+					})
+				end)
+				pcall(function()
+					tween = Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						Transparency = 1
+					})
+				end)
+			end
+			tween.Completed:Wait()
+			tween = Library:Tween(CommandBarUI, 1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1
+			})
+			wait(0.5)
+			Library:Tween(CommandBarUI, 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+				Size = UDim2.new(2, 0, 2, 0)
+			})
+			wait(0.75)
+			CommandBarUI:Destroy()
+		end
+		
+		function CommandBar:ChangePrefix(newPrefix)
+			if #newPrefix > 1 then
+				warn('Error: Invalid input length. Please enter only a single character for the prefix.')
+				CommandBarUI.Prefix.Text = Prefix
+			else
+				Prefix = newPrefix
+				CommandBarUI.Prefix.Text = Prefix
+			end
+		end
+
+		function CommandBar:GetPrefix()
+			return Prefix
+		end
+
+		function CommandBar:GetCommands()
+			return Cmds
+		end
+		
+		function CommandBar:GetElement()
+			return CommandBarUI
+		end
+		
+		function CommandBar:Edit(newCmdBarName, newPrefix)
+			cmdBarName = newCmdBarName
+			CommandBar:ChangePrefix(newPrefix)
+			CommandBarUI.Name = cmdBarName
+			CommandBarUI.Title.Text = cmdBarName
+		end
+		
+		function CommandBar:Remove()
+			Cmds = {}
+			CloseCommandUI()
+		end
+
+		CommandBarUI.Prefix.FocusLost:Connect(function()
+			CommandBar:ChangePrefix(CommandBarUI.Prefix.Text)
+		end)
+
+		UIS.InputBegan:Connect(function(input, gameProcessed)
+			if not gameProcessed then
+				if input.KeyCode.Name == Library:CharacterToKeyCode(Prefix).Name then
+					if CommandBarUI.Size == UDim2.new(0, 381, 0, 227) then
+						task.wait()
+						CommandBarUI.RunCommandFrame.RunCommand:CaptureFocus()
+					end
+				end
+			end
+		end)
+
+		CommandBarUI.RunCommandFrame.RunCommand:GetPropertyChangedSignal('Text'):Connect(function()
+			for i, v in pairs(CommandBarUI.Commands:GetChildren()) do
+				if v:IsA'Frame' then
+					local names = v:FindFirstChild'Text'.Text:split('  ')[1]
+					if string.find(names:lower(), CommandBarUI.RunCommandFrame.RunCommand.Text:split(' ')[1]:lower()) then
+						v.Visible = true
+					else
+						v.Visible = false
+					end
+				end
+			end
+			if string.find(CommandBarUI.RunCommandFrame.RunCommand.Text, '\t') then
+				if #CommandBarUI.RunCommandFrame.RunCommand.Text:split(' ') < 2 then
+					CommandBarUI.RunCommandFrame.RunCommand.Text = CommandBarUI.RunCommandFrame.RunCommand.Text:gsub('\t', '')
+					for i, v in pairs(CommandBarUI.Commands:GetChildren()) do
+						if v:IsA'Frame' then
+							if v.AbsolutePosition.Y == CommandBarUI.Commands.AbsolutePosition.Y and v.Visible == true then
+								for a, b in pairs(Cmds) do
+									if a == v.Text.Text:split('  ')[1] then
+										local found = false
+										for c, d in pairs(b.Names) do
+											if found == false and string.find(d:lower(), CommandBarUI.RunCommandFrame.RunCommand.Text:lower()) == 1 then
+												found = true
+												CommandBarUI.RunCommandFrame.RunCommand.Text = d..' '
+												CommandBarUI.RunCommandFrame.RunCommand.CursorPosition = #CommandBarUI.RunCommandFrame.RunCommand.Text + 1
+											end
+										end
+										if not found then
+											CommandBarUI.RunCommandFrame.RunCommand.Text = b.Names[1]..' '
+											CommandBarUI.RunCommandFrame.RunCommand.CursorPosition = #CommandBarUI.RunCommandFrame.RunCommand.Text + 1
+										end
+										found = false
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		local cmduiminimized = false
+
+		CommandBarUI.Minimize.Activated:Connect(function()
+			cmduiminimized = not cmduiminimized
+			if cmduiminimized then
+				Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+					Size = UDim2.new(0, 381, 0, 35)
+				})
+			else
+				Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+					Size = UDim2.new(0, 381, 0, 227)
+				})
+			end
+		end)
+
+		CommandBarUI.Close.Activated:Connect(function()
+			CloseCommandUI()
+		end)
+		
+		CommandBarUI.RunCommandFrame.RunCommand.FocusLost:Connect(function(enterPressed)
+			if enterPressed and CommandBarUI.RunCommandFrame.RunCommand.Text ~= '' then
+				local str = CommandBarUI.RunCommandFrame.RunCommand.Text
+				local cmdname, arguments = string.match(str, '(%S+)%s+(.+)')
+				
+				if not str:find('%s') then
+					cmdname = str
+					arguments = ''
+				end
+				
+				if cmdname == nil then
+					cmdname = str:gsub('%s', '')
+				end
+				
+				cmdname = cmdname:lower()
+				
+				local found = false
+				
+				for i, v in pairs(Cmds) do
+					local newTable = v.Names
+					for a, b in newTable do
+						newTable[a] = b:lower()
+					end
+					if not found and table.find(newTable, cmdname) then
+						found = v
+					end
+				end
+				
+				if found ~= false then
+					found.Func(arguments)
+				end
+			end
+		end)
+
+		function CommandBar:AddCommand(Names, Args, Desc, Func)
+			
+			local newNames = Names
+			for i, v in pairs(newNames) do
+				newNames[i] = v:lower()
+				if v:find('%s') then
+					error('Please do not use whitespace in your command name.')
+				end
+			end
+			Names = newNames
+			
+			local CommandButton = {}
+			local NameStr = ''
+			local ArgsStr = '<'
+			local FullStr = ''
+
+			for i, v in pairs(Names) do
+				if i ~= #Names then
+					NameStr = NameStr..v..'/'
+				else
+					NameStr = NameStr..v
+				end
+			end
+
+			if #Args > 0 then
+				for i, v in pairs(Args) do
+					if i ~= #Args then
+						ArgsStr = ArgsStr..v..', '
+					else
+						ArgsStr = ArgsStr..v..'>'
+					end
+				end
+				FullStr = NameStr..'  '..ArgsStr..'  |  '..Desc
+			else
+				ArgsStr = ''
+				FullStr = NameStr..'  |  '..Desc
+			end
+
+			Cmds[NameStr] = {
+				['Names'] = Names,
+				['Args'] = ArgsStr,
+				['Desc'] = Desc,
+				['Func'] = Func
+			}
+
+			local CommandButtonUI = Library:New('Frame', {
+				Name = NameStr,
+				AnchorPoint = Vector2.new(0.5, 0),
+				Size = UDim2.new(0, 372, 0, 24),
+				BorderSizePixel = 0,
+				BackgroundColor3 = Theme.ElementColor,
+				Parent = CommandBarUI.Commands
+			}, {
+				Library:New('UICorner', {
+					CornerRadius = UDim.new(0, 3)
+				}),
+				Library:New('TextLabel', {
+					Name = 'Text',
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Size = UDim2.new(0, 358, 0, 22),
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					BorderSizePixel = 0,
+					FontSize = Enum.FontSize.Size11,
+					TextSize = 11,
+					TextColor3 = Theme.TextColor,
+					Text = FullStr,
+					Font = Enum.Font.Gotham,
+					TextTransparency = 0.2,
+					TextXAlignment = Enum.TextXAlignment.Left
+				}),
+				Library:New('TextButton', {
+					Name = 'Button',
+					Size = UDim2.new(1, 0, 1, 0),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Text = ''
+				})
+			})
+
+			Library:SetColor({
+				Element = CommandButtonUI,
+				Property = 'BackgroundColor3',
+				Color = 'ElementColor'
+			}, {
+				Element = CommandButtonUI.Text,
+				Property = 'TextColor3',
+				Color = 'TextColor'
+			})
+
+			Library:AddRippleEffect(CommandButtonUI.Button, CommandButtonUI)
+
+			CommandButtonUI.Button.Activated:Connect(function()
+				local text = CommandBarUI.RunCommandFrame.RunCommand.Text
+				CommandBarUI.RunCommandFrame.RunCommand:CaptureFocus()
+				local found = false
+				for i, v in pairs(Names) do
+					if string.find(v:lower(), text:lower()) and not found then
+						found = true
+						CommandBarUI.RunCommandFrame.RunCommand.Text = v..' '
+					end
+				end
+				if not found then
+					CommandBarUI.RunCommandFrame.RunCommand.Text = Names[1]..' '
+				end
+				CommandBarUI.RunCommandFrame.RunCommand.CursorPosition = #CommandBarUI.RunCommandFrame.RunCommand.Text + 1
+			end)
+
+			function CommandButton:Edit(newNames, newArgs, newDesc, newFunc)
+				Cmds[NameStr] = nil
+				local newTable = newNames
+				for i, v in pairs(newTable) do
+					newTable[i] = v:lower()
+					if v:find('%s') then
+						error('Please do not use whitespace in your command name.')
+					end
+				end
+				newNames = newTable
+				Names = newNames
+				Args = newArgs
+				Desc = newDesc
+				Func = newFunc
+
+				NameStr = ''
+				ArgsStr = '<'
+				FullStr = ''
+
+				for i, v in pairs(Names) do
+					if i ~= #Names then
+						NameStr = NameStr..v..'/'
+					else
+						NameStr = NameStr..v
+					end
+				end
+
+				if #Args > 0 then
+					for i, v in pairs(Args) do
+						if i ~= #Args then
+							ArgsStr = ArgsStr..v..', '
+						else
+							ArgsStr = ArgsStr..v..'>'
+						end
+					end
+					FullStr = NameStr..'  '..ArgsStr..'  |  '..Desc
+				else
+					ArgsStr = ''
+					FullStr = NameStr..'  |  '..Desc
+				end
+
+				Cmds[NameStr] = {
+					['Names'] = Names,
+					['Args'] = ArgsStr,
+					['Desc'] = Desc,
+					['Func'] = Func
+				}
+
+				CommandButtonUI.Name = NameStr
+				CommandButtonUI.Text.Text = FullStr
+			end
+			
+			function CommandButton:Remove()
+				Cmds[NameStr] = nil
+				CommandButtonUI:Destroy()
+			end
+			
+			function CommandButton:GetElement()
+				return CommandButtonUI
+			end
+
+			return CommandButton
+		end
+
+		return CommandBar
+
 	end
 
 	return Window
