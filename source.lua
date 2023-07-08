@@ -985,6 +985,10 @@ function Library:Window(title, subtitle, Theme)
 	end)
 
 	function Window:Minimize()
+		minimized = true
+		for _, func in pairs(onMinimizeFunctions) do
+			func(minimized)
+		end
 		resizable = false
 		Library:Tween(Main, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Size = UDim2.new(0, Main.Size.X.Offset, 0, 30)
@@ -1001,6 +1005,10 @@ function Library:Window(title, subtitle, Theme)
 	end
 
 	function Window:Unminimize()
+		minimized = false
+		for _, func in pairs(onMinimizeFunctions) do
+			func(minimized)
+		end
 		resizable = false
 		Library:Tween(Main, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Size = UDim2.new(0, Main.Size.X.Offset, 0, YOffsetSize)
@@ -1029,9 +1037,6 @@ function Library:Window(title, subtitle, Theme)
 
 	Minimize.Activated:Connect(function()
 		minimized = not minimized
-		for _, func in pairs(onMinimizeFunctions) do
-			func(minimized)
-		end
 		if minimized then
 			Window:Minimize()
 		else
@@ -4934,7 +4939,12 @@ function Library:Window(title, subtitle, Theme)
 			Color = 'TextColor'
 		})
 		
+		local onCloseFunctions2, onMinimizeFunctions2 = {}, {}
+		
 		local function CloseCommandUI()
+			for _, func in pairs(onCloseFunctions2) do
+				func()
+			end
 			CommandBarUI.DescendantAdded:Connect(function(d)
 				d:Destroy()
 			end)
@@ -5071,23 +5081,57 @@ function Library:Window(title, subtitle, Theme)
 		end)
 
 		local cmduiminimized = false
+		
+		function CommandBar:Minimize()
+			cmduiminimized = true
+			for _, func in pairs(onMinimizeFunctions2) do
+				func(cmduiminimized)
+			end
+			Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+				Size = UDim2.new(0, 381, 0, 35)
+			})
+		end
+		
+		function CommandBar:Unminimize()
+			cmduiminimized = false
+			for _, func in pairs(onMinimizeFunctions2) do
+				func(cmduiminimized)
+			end
+			Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+				Size = UDim2.new(0, 381, 0, 227)
+			})
+		end
 
 		CommandBarUI.Minimize.Activated:Connect(function()
 			cmduiminimized = not cmduiminimized
 			if cmduiminimized then
-				Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
-					Size = UDim2.new(0, 381, 0, 35)
-				})
+				CommandBar:Minimize()
 			else
-				Library:Tween(CommandBarUI, 0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
-					Size = UDim2.new(0, 381, 0, 227)
-				})
+				CommandBar:Unminimize()
 			end
 		end)
 
 		CommandBarUI.Close.Activated:Connect(function()
 			CloseCommandUI()
 		end)
+		
+		function CommandBar:OnClose(func)
+			table.insert(onCloseFunctions2, func)
+		end
+		function CommandBar:OnMinimize(func)
+			table.insert(onMinimizeFunctions2, func)
+		end
+		
+		local cmdbaruitoggled = false
+		
+		function CommandBar:ToggleUI()
+			cmdbaruitoggled = not cmdbaruitoggled
+			if cmdbaruitoggled then
+				CommandBarUI.Visible = false
+			else
+				CommandBarUI.Visible = true
+			end
+		end
 		
 		CommandBarUI.RunCommandFrame.RunCommand.FocusLost:Connect(function(enterPressed)
 			if enterPressed and CommandBarUI.RunCommandFrame.RunCommand.Text ~= '' then
@@ -5232,8 +5276,10 @@ function Library:Window(title, subtitle, Theme)
 			end)
 
 			function CommandButton:Edit(newNames, newArgs, newDesc, newFunc)
+				
 				Cmds[NameStr] = nil
 				local newTable = newNames
+				
 				for i, v in pairs(newTable) do
 					newTable[i] = v:lower()
 					if v:find('%s') then
@@ -5296,7 +5342,6 @@ function Library:Window(title, subtitle, Theme)
 		end
 
 		return CommandBar
-
 	end
 
 	return Window
