@@ -2475,16 +2475,16 @@ function Library:Window(title, subtitle, Theme)
 				end
 
 				local function SetInteractableSize()
-					if InteractableUI.InteractableFrame.Interactable.InteractableText.AbsoluteSize.X > 68 then
-						InteractableUI.InteractableFrame.Interactable.Size = UDim2.new(0, InteractableUI.InteractableFrame.Interactable.InteractableText.AbsoluteSize.X + 12, 0, 17)
+					if InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText.AbsoluteSize.X > 68 then
+						InteractableUI.InteractableFrame:FindFirstChild'Interactable'.Size = UDim2.new(0, InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText.AbsoluteSize.X + 12, 0, 17)
 					else
-						InteractableUI.InteractableFrame.Interactable.Size = UDim2.new(0, 80, 0, 17)
+						InteractableUI.InteractableFrame:FindFirstChild'Interactable'.Size = UDim2.new(0, 80, 0, 17)
 					end
 				end
 
 				SetInteractableSize()
 
-				InteractableUI.InteractableFrame.Interactable.InteractableText:GetPropertyChangedSignal('Text'):Connect(function()
+				InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText:GetPropertyChangedSignal('Text'):Connect(function()
 					SetInteractableSize()
 				end)
 
@@ -2507,11 +2507,11 @@ function Library:Window(title, subtitle, Theme)
 					Property = 'TextColor3',
 					Color = 'TextColor'
 				}, {
-					Element = InteractableUI.InteractableFrame.Interactable.InteractableText,
+					Element = InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText,
 					Property = 'TextColor3',
 					Color = 'TextColor'
 				}, {
-					Element = InteractableUI.InteractableFrame.Interactable,
+					Element = InteractableUI.InteractableFrame:FindFirstChild'Interactable',
 					Property = 'BackgroundColor3',
 					Color = 'SecondaryElementColor'
 				}, {
@@ -2556,9 +2556,9 @@ function Library:Window(title, subtitle, Theme)
 					resizable = true
 				end)
 
-				Library:AddRippleEffect(InteractableUI.InteractableFrame.Interactable)
+				Library:AddRippleEffect(InteractableUI.InteractableFrame:FindFirstChild'Interactable')
 
-				InteractableUI.InteractableFrame.Interactable.Activated:Connect(function()
+				InteractableUI.InteractableFrame:FindFirstChild'Interactable'.Activated:Connect(function()
 					func()
 				end)
 
@@ -2570,7 +2570,7 @@ function Library:Window(title, subtitle, Theme)
 					InteractableUI.Name = interactableName
 					InteractableUI.Text.Text = interactableName
 					InteractableUI.InfoText.Text = info
-					InteractableUI.InteractableFrame.Interactable.InteractableText.Text = interactableText
+					InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText.Text = interactableText
 				end
 
 				function Interactable:Remove()
@@ -4753,7 +4753,7 @@ function Library:Window(title, subtitle, Theme)
 	function Window:CommandBar(cmdBarName, Prefix)
 		local CommandBar = {}
 		local Cmds = {}
-		
+
 		if #Prefix > 1 then
 			error('Error: Invalid input length. Please enter only a single character for the prefix.')
 		end
@@ -4938,9 +4938,9 @@ function Library:Window(title, subtitle, Theme)
 			Property = 'ImageColor3',
 			Color = 'TextColor'
 		})
-		
+
 		local onCloseFunctions2, onMinimizeFunctions2 = {}, {}
-		
+
 		local function CloseCommandUI()
 			for _, func in pairs(onCloseFunctions2) do
 				func()
@@ -4989,7 +4989,7 @@ function Library:Window(title, subtitle, Theme)
 			wait(0.75)
 			CommandBarUI:Destroy()
 		end
-		
+
 		function CommandBar:ChangePrefix(newPrefix)
 			if #newPrefix > 1 then
 				warn('Error: Invalid input length. Please enter only a single character for the prefix.')
@@ -5007,18 +5007,18 @@ function Library:Window(title, subtitle, Theme)
 		function CommandBar:GetCommands()
 			return Cmds
 		end
-		
+
 		function CommandBar:GetElement()
 			return CommandBarUI
 		end
-		
+
 		function CommandBar:Edit(newCmdBarName, newPrefix)
 			cmdBarName = newCmdBarName
 			CommandBar:ChangePrefix(newPrefix)
 			CommandBarUI.Name = cmdBarName
 			CommandBarUI.Title.Text = cmdBarName
 		end
-		
+
 		function CommandBar:Remove()
 			Cmds = {}
 			CloseCommandUI()
@@ -5081,7 +5081,7 @@ function Library:Window(title, subtitle, Theme)
 		end)
 
 		local cmduiminimized = false
-		
+
 		function CommandBar:Minimize()
 			cmduiminimized = true
 			for _, func in pairs(onMinimizeFunctions2) do
@@ -5091,7 +5091,7 @@ function Library:Window(title, subtitle, Theme)
 				Size = UDim2.new(0, 381, 0, 35)
 			})
 		end
-		
+
 		function CommandBar:Unminimize()
 			cmduiminimized = false
 			for _, func in pairs(onMinimizeFunctions2) do
@@ -5114,16 +5114,16 @@ function Library:Window(title, subtitle, Theme)
 		CommandBarUI.Close.Activated:Connect(function()
 			CloseCommandUI()
 		end)
-		
+
 		function CommandBar:OnClose(func)
 			table.insert(onCloseFunctions2, func)
 		end
 		function CommandBar:OnMinimize(func)
 			table.insert(onMinimizeFunctions2, func)
 		end
-		
+
 		local cmdbaruitoggled = false
-		
+
 		function CommandBar:ToggleUI()
 			cmdbaruitoggled = not cmdbaruitoggled
 			if cmdbaruitoggled then
@@ -5132,25 +5132,25 @@ function Library:Window(title, subtitle, Theme)
 				CommandBarUI.Visible = true
 			end
 		end
-		
+
 		CommandBarUI.RunCommandFrame.RunCommand.FocusLost:Connect(function(enterPressed)
 			if enterPressed and CommandBarUI.RunCommandFrame.RunCommand.Text ~= '' then
 				local str = CommandBarUI.RunCommandFrame.RunCommand.Text
 				local cmdname, arguments = string.match(str, '(%S+)%s+(.+)')
-				
+
 				if not str:find('%s') then
 					cmdname = str
 					arguments = ''
 				end
-				
+
 				if cmdname == nil then
 					cmdname = str:gsub('%s', '')
 				end
-				
+
 				cmdname = cmdname:lower()
-				
+
 				local found = false
-				
+
 				for i, v in pairs(Cmds) do
 					local newTable = v.Names
 					for a, b in newTable do
@@ -5160,7 +5160,7 @@ function Library:Window(title, subtitle, Theme)
 						found = v
 					end
 				end
-				
+
 				if found ~= false then
 					found.Func(arguments)
 				end
@@ -5168,7 +5168,7 @@ function Library:Window(title, subtitle, Theme)
 		end)
 
 		function CommandBar:AddCommand(Names, Args, Desc, Func)
-			
+
 			local newNames = Names
 			for i, v in pairs(newNames) do
 				newNames[i] = v:lower()
@@ -5177,7 +5177,7 @@ function Library:Window(title, subtitle, Theme)
 				end
 			end
 			Names = newNames
-			
+
 			local CommandButton = {}
 			local NameStr = ''
 			local ArgsStr = '<'
@@ -5276,10 +5276,10 @@ function Library:Window(title, subtitle, Theme)
 			end)
 
 			function CommandButton:Edit(newNames, newArgs, newDesc, newFunc)
-				
+
 				Cmds[NameStr] = nil
 				local newTable = newNames
-				
+
 				for i, v in pairs(newTable) do
 					newTable[i] = v:lower()
 					if v:find('%s') then
@@ -5328,12 +5328,12 @@ function Library:Window(title, subtitle, Theme)
 				CommandButtonUI.Name = NameStr
 				CommandButtonUI.Text.Text = FullStr
 			end
-			
+
 			function CommandButton:Remove()
 				Cmds[NameStr] = nil
 				CommandButtonUI:Destroy()
 			end
-			
+
 			function CommandButton:GetElement()
 				return CommandButtonUI
 			end
