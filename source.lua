@@ -20,7 +20,7 @@ Library.Icons = {
 	Resize = asset..'13258898744',
 	Close = asset..'3926305904',
 	Minimize = asset..'3926307971',
-	Search = asset..'12766449817',
+	Search = asset..'14733498599',
 	ArrowIcon = asset..'12991368507',
 	ColorPickerValue = asset..'13081254524',
 	ColorPickerRGB = asset..'1433361550',
@@ -153,230 +153,281 @@ end
 Smth:Destroy()
 
 
-local conns, module, dragging = {}, {}, false
+local draggingObject = nil
 
 function Library:MakeDraggable(obj, Dragger, speed)
 	speed = speed or 0
 	local dragInput, dragStart
-	local startPos = obj.Position 
-	local dragger = Dragger or obj	
+	local startPos = obj.Position
+	local dragger = Dragger or obj
+	local dragging = false
+
 	local function updateInput(input)
 		local offset = input.Position - dragStart
 		local Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + offset.X, startPos.Y.Scale, startPos.Y.Offset + offset.Y)
 		game:GetService('TweenService'):Create(obj, TweenInfo.new(speed), {Position = Position}):Play()
 	end
-	conns[obj] = conns[obj] or {}
-	if conns[obj].db then
-		conns[obj].db:Disconnect()
-		conns[obj].db = nil
-	end
-	conns[obj].db =	dragger.InputBegan:Connect(function(input)
-		if dragging and module.dragged ~= obj then return end
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UIS:GetFocusedTextBox() then
+
+	dragger.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not UIS:GetFocusedTextBox() and draggingObject == nil then
 			dragging = true
+			draggingObject = obj
 			dragStart = input.Position
 			startPos = obj.Position
-			module.dragged = obj
-			if conns[obj].ic then
-				conns[obj].ic:Disconnect()
-				conns[obj].ic = nil
-			end
-			conns[obj].ic = input.Changed:Connect(function()
+
+			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false	
-					conns[obj].ic:Disconnect()
-					conns[obj].ic = nil
+					draggingObject = nil
+					dragging = false
 				end
 			end)
 		end
 	end)
-	if conns[obj].dc then
-		conns[obj].dc:Disconnect()
-		conns[obj].dc = nil
-	end
-	conns[obj].dc =	dragger.InputChanged:Connect(function(input)
-		if module.dragged ~= obj then return end
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+	dragger.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch and dragging then
 			dragInput = input
 		end
 	end)
-	if conns[obj].uc then
-		conns[obj].uc:Disconnect()
-		conns[obj].uc = nil
-	end
-	conns[obj].uc =	UIS.InputChanged:Connect(function(input)
-		if module.dragged ~= obj then return end
+	UIS.InputChanged:Connect(function(input)
 		if input == dragInput and dragging then
-			updateInput(input)
+			if draggingObject == obj then
+				updateInput(input)
+			end
 		end
 	end)
 end
+
+function Library:StringToColor3(color3String)
+	color3String = string.gsub(color3String, '#', '')
+	color3String = string.gsub(color3String, '%s', '')
+	color3String = color3String:lower()
+
+	local r1, g1, b1 = color3String:match("color3%.new%(([%d.]+),([%d.]+),([%d.]+)%)")
+	if (r1 and g1 and b1) then
+		return Color3.new(r1, g1, b1)
+	end
+
+	local r, g, b = color3String:match("color3%.fromrgb%((%d+),(%d+),(%d+)%)")
+
+	if not (r and g and b) then
+		local hex = color3String:match("color3%.fromhex%(\"([%x]+)\"%)")
+		if not hex then
+			hex = color3String:match("color3%.fromhex%('([%x]+)'%)")
+		end
+		if hex then
+			r = tonumber(hex:sub(1, 2), 16)
+			g = tonumber(hex:sub(3, 4), 16)
+			b = tonumber(hex:sub(5, 6), 16)
+		else
+			local h, s, v = color3String:match("color3%.fromhsv%(([%d.]+),([%d.]+),([%d.]+)%)")
+			if h and s and v then
+				return Color3.fromHSV(tonumber(h), tonumber(s), tonumber(v))
+			else
+				return nil
+			end
+		end
+	end
+
+	return Color3.new(tonumber(r) / 255, tonumber(g) / 255, tonumber(b) / 255)
+end
+
+local VernesityV2UI = Library:New('ScreenGui', {
+	Name = 'VernesityV2UI',
+	IgnoreGuiInset = true,
+	ResetOnSpawn = false,
+	Parent = UIParent
+}, {
+	Library:New('Frame', {
+		Name = 'MobileUI',
+		AnchorPoint = Vector2.new(0.985, 0),
+		Size = UDim2.new(0.65, 0, 0.047, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0.985, 0, 0.011, 0)
+	}, {
+		Library:New('UIListLayout', {
+			Padding = UDim.new(0, 10),
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right
+		})
+	}),
+	Library:New('Frame', {
+		Name = 'Notifications',
+		AnchorPoint = Vector2.new(1, 0),
+		Size = UDim2.new(0.12, 0, 0.99, 0),
+		Position = UDim2.new(0.995, 0, 0, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0
+	}, {
+		Library:New('UIListLayout', {
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			VerticalAlignment = Enum.VerticalAlignment.Bottom,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 10)
+		})
+	})
+})
 
 
 function Library:EnableKeySystem(title, subtitle, note, keys)
 
 	Load = false
 
-	local KeySystemUI = Library:New('ScreenGui', {
-		Name = 'Vernesity V2 Key System',
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-		ResetOnSpawn = false
+	local KeySystemUIMain = Library:New('Frame', {
+		Name = 'KeySystemUI',
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.new(0, 0, 0, 0),
+		ClipsDescendants = true,
+		Active = true,
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		BackgroundColor3 = Color3.fromRGB(42, 49, 55)
 	}, {
-		Library:New('Frame', {
-			Name = 'Main',
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Size = UDim2.new(0, 0, 0, 0),
-			ClipsDescendants = true,
-			Position = UDim2.new(0.5, 0, 0.5, 0),
-			BackgroundColor3 = Color3.fromRGB(42, 49, 55)
+		Library:New('UICorner', {
+			CornerRadius = UDim.new(0, 3)
+		}),
+		Library:New('TextLabel', {
+			Name = 'Title',
+			Size = UDim2.new(0, 150, 0, 36),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 13, 0, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			FontSize = Enum.FontSize.Size18,
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(240, 240, 240),
+			TextTransparency = 1,
+			Text = title,
+			Font = Enum.Font.GothamMedium,
+			TextXAlignment = Enum.TextXAlignment.Left
+		}),
+		Library:New('TextLabel', {
+			Name = 'KeyLabel',
+			Size = UDim2.new(0, 30, 0, 10),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 218, 0, 20),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			FontSize = Enum.FontSize.Size14,
+			TextTransparency = 1,
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(240, 240, 240),
+			Text = 'Key',
+			Font = Enum.Font.GothamMedium,
+			TextXAlignment = Enum.TextXAlignment.Left
+		}),
+		Library:New('TextLabel', {
+			Name = 'NoteLabel',
+			Size = UDim2.new(0, 35, 0, 10),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 13, 0, 73),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			FontSize = Enum.FontSize.Size14,
+			TextTransparency = 1,
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(240, 240, 240),
+			Text = 'Note',
+			Font = Enum.Font.GothamMedium,
+			TextXAlignment = Enum.TextXAlignment.Left
+		}),
+		Library:New('TextLabel', {
+			Name = 'Subtitle',
+			Size = UDim2.new(0, 150, 0, 40),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 13, 0, 20),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			FontSize = Enum.FontSize.Size14,
+			TextTransparency = 1,
+			TextSize = 12,
+			TextColor3 = Color3.fromRGB(240, 240, 240),
+			Text = subtitle,
+			Font = Enum.Font.Gotham,
+			TextXAlignment = Enum.TextXAlignment.Left
+		}),
+		Library:New('TextLabel', {
+			Name = 'Note',
+			Size = UDim2.new(0, 355, 0, 55),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 13, 0, 93),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			FontSize = Enum.FontSize.Size14,
+			TextTransparency = 1,
+			TextSize = 12,
+			TextColor3 = Color3.fromRGB(240, 240, 240),
+			Text = note,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextWrapped = true,
+			Font = Enum.Font.Gotham,
+			TextWrap = true,
+			TextXAlignment = Enum.TextXAlignment.Left
+		}),
+		Library:New('TextBox', {
+			AnchorPoint = Vector2.new(0.8, 0.5),
+			Size = UDim2.new(0, 150, 0, 21),
+			Position = UDim2.new(0, 338, 0, 50),
+			BackgroundTransparency = 1,
+			BackgroundColor3 = Color3.fromRGB(58, 65, 73),
+			FontSize = Enum.FontSize.Size14,
+			PlaceholderColor3 = Color3.fromRGB(255, 255, 255),
+			TextSize = 12,
+			TextColor3 = Color3.fromRGB(235, 235, 235),
+			TextTransparency = 1,
+			Text = '',
+			Font = Enum.Font.Gotham
 		}, {
 			Library:New('UICorner', {
 				CornerRadius = UDim.new(0, 3)
 			}),
-			Library:New('TextLabel', {
-				Name = 'Title',
-				Size = UDim2.new(0, 150, 0, 36),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 13, 0, 0),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				FontSize = Enum.FontSize.Size18,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(240, 240, 240),
-				TextTransparency = 1,
-				Text = title,
-				Font = Enum.Font.GothamMedium,
-				TextXAlignment = Enum.TextXAlignment.Left
-			}),
-			Library:New('TextLabel', {
-				Name = 'KeyLabel',
-				Size = UDim2.new(0, 30, 0, 10),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 218, 0, 20),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				FontSize = Enum.FontSize.Size14,
-				TextTransparency = 1,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(240, 240, 240),
-				Text = 'Key',
-				Font = Enum.Font.GothamMedium,
-				TextXAlignment = Enum.TextXAlignment.Left
-			}),
-			Library:New('TextLabel', {
-				Name = 'NoteLabel',
-				Size = UDim2.new(0, 35, 0, 10),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 13, 0, 73),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				FontSize = Enum.FontSize.Size14,
-				TextTransparency = 1,
-				TextSize = 13,
-				TextColor3 = Color3.fromRGB(240, 240, 240),
-				Text = 'Note',
-				Font = Enum.Font.GothamMedium,
-				TextXAlignment = Enum.TextXAlignment.Left
-			}),
-			Library:New('TextLabel', {
-				Name = 'Subtitle',
-				Size = UDim2.new(0, 150, 0, 40),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 13, 0, 20),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				FontSize = Enum.FontSize.Size14,
-				TextTransparency = 1,
-				TextSize = 12,
-				TextColor3 = Color3.fromRGB(240, 240, 240),
-				Text = subtitle,
-				Font = Enum.Font.Gotham,
-				TextXAlignment = Enum.TextXAlignment.Left
-			}),
-			Library:New('TextLabel', {
-				Name = 'Note',
-				Size = UDim2.new(0, 355, 0, 55),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0, 13, 0, 93),
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-				FontSize = Enum.FontSize.Size14,
-				TextTransparency = 1,
-				TextSize = 12,
-				TextColor3 = Color3.fromRGB(240, 240, 240),
-				Text = note,
-				TextYAlignment = Enum.TextYAlignment.Top,
-				TextWrapped = true,
-				Font = Enum.Font.Gotham,
-				TextWrap = true,
-				TextXAlignment = Enum.TextXAlignment.Left
-			}),
-			Library:New('TextBox', {
-				AnchorPoint = Vector2.new(0.8, 0.5),
-				Size = UDim2.new(0, 150, 0, 21),
-				Position = UDim2.new(0, 338, 0, 50),
-				BackgroundTransparency = 1,
-				BackgroundColor3 = Color3.fromRGB(58, 65, 73),
-				FontSize = Enum.FontSize.Size14,
-				PlaceholderColor3 = Color3.fromRGB(255, 255, 255),
-				TextSize = 12,
-				TextColor3 = Color3.fromRGB(235, 235, 235),
-				TextTransparency = 1,
-				Text = '',
-				Font = Enum.Font.Gotham
-			}, {
-				Library:New('UICorner', {
-					CornerRadius = UDim.new(0, 3)
-				}),
-				Library:New('UIStroke', {
-					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-					Transparency = 1,
-					Color = Color3.fromRGB(98, 160, 211)
-				})
-			}),
-			Library:New('ImageButton', {
-				Name = 'Close',
-				AnchorPoint = Vector2.new(0.98, 0.5),
-				Position = UDim2.new(0, 376, 0, 16),
-				Size = UDim2.new(0, 20, 0, 20),
-				BackgroundTransparency = 1,
-				ImageColor3 = Color3.fromRGB(240, 240, 240),
-				ImageTransparency = 1,
-				ImageRectOffset = Vector2.new(284, 4),
-				Image = Library.Icons.Close,
-				ImageRectSize = Vector2.new(24, 24)
+			Library:New('UIStroke', {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Transparency = 1,
+				Color = Color3.fromRGB(98, 160, 211)
 			})
+		}),
+		Library:New('ImageButton', {
+			Name = 'Close',
+			AnchorPoint = Vector2.new(0.98, 0.5),
+			Position = UDim2.new(0, 376, 0, 16),
+			Size = UDim2.new(0, 20, 0, 20),
+			BackgroundTransparency = 1,
+			ImageColor3 = Color3.fromRGB(240, 240, 240),
+			ImageTransparency = 1,
+			ImageRectOffset = Vector2.new(284, 4),
+			Image = Library.Icons.Close,
+			ImageRectSize = Vector2.new(24, 24)
 		})
 	})
 
-	Library:MakeDraggable(KeySystemUI.Main)
+	Library:MakeDraggable(KeySystemUIMain)
 
-	KeySystemUI.Parent = UIParent
+	KeySystemUIMain.Parent = VernesityV2UI
 
 	local speed = .5
-	Library:Tween(KeySystemUI.Main, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		Size = UDim2.new(0, 381, 0, 158)
 	})
 	wait(speed/2)
-	Library:Tween(KeySystemUI.Main.NoteLabel, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.NoteLabel, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0.1
 	})
-	Library:Tween(KeySystemUI.Main.Note, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.Note, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0.2
 	})
-	Library:Tween(KeySystemUI.Main.KeyLabel, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.KeyLabel, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0.1
 	})
-	Library:Tween(KeySystemUI.Main.Close, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.Close, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		ImageTransparency = 0.1
 	})
-	Library:Tween(KeySystemUI.Main.TextBox, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.TextBox, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0.1,
 		BackgroundTransparency = 0
 	})
-	Library:Tween(KeySystemUI.Main.Title, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.Title, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0
 	})
-	Library:Tween(KeySystemUI.Main.Subtitle, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	Library:Tween(KeySystemUIMain.Subtitle, speed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 		TextTransparency = 0.2
 	})
 	local function close()
-		for i, v in pairs(KeySystemUI.Main:GetDescendants()) do
+		for i, v in pairs(KeySystemUIMain:GetDescendants()) do
 			pcall(function()
 				Library:Tween(v, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 					BackgroundTransparency = 1
@@ -399,32 +450,32 @@ function Library:EnableKeySystem(title, subtitle, note, keys)
 			end)
 		end
 		wait(speed/2)
-		Library:Tween(KeySystemUI.Main, 1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+		Library:Tween(KeySystemUIMain, 1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Position = UDim2.new(0.5, 0, 0.5, 0),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1
 		})
 		wait(0.5)
-		local tween = Library:Tween(KeySystemUI.Main, 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+		local tween = Library:Tween(KeySystemUIMain, 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Size = UDim2.new(2, 0, 2, 0)
 		})
 		tween.Completed:Wait()
-		KeySystemUI:Destroy()
+		KeySystemUIMain:Destroy()
 	end
-	KeySystemUI.Main.Close.Activated:Connect(function()
+	KeySystemUIMain.Close.Activated:Connect(function()
 		close()
 	end)
-	KeySystemUI.Main.TextBox.Focused:Connect(function()
-		Library:Tween(KeySystemUI.Main.TextBox.UIStroke, .5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	KeySystemUIMain.TextBox.Focused:Connect(function()
+		Library:Tween(KeySystemUIMain.TextBox.UIStroke, .5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Transparency = 0
 		})
 	end)
-	KeySystemUI.Main.TextBox.FocusLost:Connect(function()
-		Library:Tween(KeySystemUI.Main.TextBox.UIStroke, .5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+	KeySystemUIMain.TextBox.FocusLost:Connect(function()
+		Library:Tween(KeySystemUIMain.TextBox.UIStroke, .5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
 			Transparency = 1
 		})
 		wait(.2)
-		if table.find(keys, KeySystemUI.Main.TextBox.Text) then
+		if table.find(keys, KeySystemUIMain.TextBox.Text) then
 			Load = true
 			close()
 		end
@@ -551,7 +602,7 @@ function Library:Window(title, subtitle, Theme)
 		end
 	end
 
-	function Library:SetColor(...)
+	function Window:SetColor(...)
 		local Table = {...}
 		for i, v in pairs(Table) do
 			table.insert(ColorChangable[v.Color], {
@@ -566,6 +617,7 @@ function Library:Window(title, subtitle, Theme)
 		Name = title,
 		IgnoreGuiInset = true,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		ResetOnSpawn = false,
 		Parent = UIParent
 	}, {
 		Library:New('Frame', {
@@ -580,35 +632,6 @@ function Library:Window(title, subtitle, Theme)
 			Library:New('UICorner', {
 				CornerRadius = UDim.new(0, 3)
 			})
-		}),
-		Library:New('Frame', {
-			Name = 'MobileUI',
-			AnchorPoint = Vector2.new(0.985, 0),
-			Size = UDim2.new(0.65, 0, 0.047, 0),
-			BackgroundTransparency = 1,
-			BorderSizePixel = 0,
-			Position = UDim2.new(0.985, 0, 0.011, 0)
-		}, {
-			Library:New('UIListLayout', {
-				Padding = UDim.new(0, 10),
-				FillDirection = Enum.FillDirection.Horizontal,
-				HorizontalAlignment = Enum.HorizontalAlignment.Right
-			})
-		}),
-		Library:New('Frame', {
-			Name = 'Notifications',
-			AnchorPoint = Vector2.new(1, 0),
-			Size = UDim2.new(0.12, 0, 0.99, 0),
-			Position = UDim2.new(0.995, 0, 0, 0),
-			BackgroundTransparency = 1,
-			BorderSizePixel = 0
-		}, {
-			Library:New('UIListLayout', {
-				HorizontalAlignment = Enum.HorizontalAlignment.Right,
-				VerticalAlignment = Enum.VerticalAlignment.Bottom,
-				SortOrder = Enum.SortOrder.LayoutOrder,
-				Padding = UDim.new(0, 10)
-			})
 		})
 	})
 
@@ -617,9 +640,9 @@ function Library:Window(title, subtitle, Theme)
 	end
 
 	Main = WindowUI.Main
-	Library:SetColor({Element = Main, Property = 'BackgroundColor3', Color = 'WindowColor'})
+	Window:SetColor({Element = Main, Property = 'BackgroundColor3', Color = 'WindowColor'})
 
-	function Library:SetSize(size, direction)
+	function Window:SetSize(size, direction)
 		if direction == 'XY' then
 			local xS, xO, yS, yO = Main.Size.X.Scale - (MainOriginalSize.X.Scale - size.X.Scale), Main.Size.X.Offset - (MainOriginalSize.X.Offset - size.X.Offset), Main.Size.Y.Scale - (MainOriginalSize.Y.Scale - size.Y.Scale), Main.Size.Y.Offset - (MainOriginalSize.Y.Offset - size.Y.Offset)
 			return UDim2.new(xS, xO, yS, yO)
@@ -632,7 +655,7 @@ function Library:Window(title, subtitle, Theme)
 		end
 	end
 
-	function Library:MakeResizable(...)
+	function Window:MakeResizable(...)
 		local Table = {...}
 		for i, v in pairs(Table) do
 			table.insert(Resizable[v.Direction], {
@@ -677,7 +700,7 @@ function Library:Window(title, subtitle, Theme)
 	local Tabs = Library:New('Folder', {Name = 'Tabs', Parent = Main})
 	local LeftSide = Library:New('Frame', {
 		Name = 'LeftSide',
-		Size = Library:SetSize(UDim2.new(0, 100, 0, 275), 'Y'),
+		Size = Window:SetSize(UDim2.new(0, 100, 0, 275), 'Y'),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 2,
@@ -686,7 +709,7 @@ function Library:Window(title, subtitle, Theme)
 		Library:New('ScrollingFrame', {
 			Name = 'Menu',
 			Selectable = false,
-			Size = Library:SetSize(UDim2.new(0, 97, 0, 215), 'Y'),
+			Size = Window:SetSize(UDim2.new(0, 97, 0, 215), 'Y'),
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0, 0, 1, 0),
 			AnchorPoint = Vector2.new(0, 1),
@@ -771,7 +794,7 @@ function Library:Window(title, subtitle, Theme)
 	local Dragger = Library:New('Frame', {
 		Name = 'Dragger',
 		BorderSizePixel = 0,
-		Size = Library:SetSize(UDim2.new(0, 475, 0, 31), 'X'),
+		Size = Window:SetSize(UDim2.new(0, 475, 0, 31), 'X'),
 		BackgroundTransparency = 1,
 		Parent = Main
 	})
@@ -779,7 +802,7 @@ function Library:Window(title, subtitle, Theme)
 
 	local Topbar = Library:New('Frame', {
 		Name = 'Topbar',
-		Size = Library:SetSize(UDim2.new(0, 377, 0, 31), 'X'),
+		Size = Window:SetSize(UDim2.new(0, 377, 0, 31), 'X'),
 		AnchorPoint = Vector2.new(1, 0),
 		BackgroundColor3 = Theme.WindowColor,
 		BackgroundTransparency = 1,
@@ -799,7 +822,7 @@ function Library:Window(title, subtitle, Theme)
 		Library:New('TextBox', {
 			LayoutOrder = 0,
 			Name = 'SearchTextBox',
-			Size = Library:SetSize(UDim2.new(0, 242, 0, 17), 'X'),
+			Size = Window:SetSize(UDim2.new(0, 242, 0, 17), 'X'),
 			ClipsDescendants = true,
 			Visible = false,
 			BorderSizePixel = 0,
@@ -1004,7 +1027,7 @@ function Library:Window(title, subtitle, Theme)
 		resizable = true
 	end
 
-	function Window:Unminimize()
+	function Window:Maximize()
 		minimized = false
 		for _, func in pairs(onMinimizeFunctions) do
 			func(minimized)
@@ -1040,7 +1063,7 @@ function Library:Window(title, subtitle, Theme)
 		if minimized then
 			Window:Minimize()
 		else
-			Window:Unminimize()
+			Window:Maximize()
 		end
 	end)
 
@@ -1170,7 +1193,7 @@ function Library:Window(title, subtitle, Theme)
 		end
 	end)
 
-	Library:MakeResizable({
+	Window:MakeResizable({
 		Element = LeftSide,
 		Direction = 'Y'
 	}, {
@@ -1187,7 +1210,7 @@ function Library:Window(title, subtitle, Theme)
 		Direction = 'X'
 	})
 
-	Library:SetColor({
+	Window:SetColor({
 		Element = LeftSide.Title,
 		Property = 'TextColor3',
 		Color = 'TextColor'
@@ -1238,7 +1261,8 @@ function Library:Window(title, subtitle, Theme)
 	})
 
 	function Window:Edit(newTitle, newSubtitle, newTheme)
-		Window:ChangeTheme(newTheme)
+		Theme = newTheme
+		Window:ChangeTheme(Theme)
 		title = newTitle
 		subtitle = newSubtitle
 		LeftSide.Title.Text = title
@@ -1317,7 +1341,7 @@ function Library:Window(title, subtitle, Theme)
 					})
 				})
 			})
-			Library:SetColor({
+			Window:SetColor({
 				Element = NotificationUI,
 				Property = 'BackgroundColor3',
 				Color = 'ElementColor'
@@ -1369,7 +1393,7 @@ function Library:Window(title, subtitle, Theme)
 						MaxTextSize = 9
 					}),
 				})
-				Library:SetColor({
+				Window:SetColor({
 					Element = Button,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -1400,7 +1424,7 @@ function Library:Window(title, subtitle, Theme)
 						CornerRadius = UDim.new(0, 3)
 					}),
 				})
-				Library:SetColor({
+				Window:SetColor({
 					Element = Button,
 					Property = 'ImageColor3',
 					Color = 'TextColor'
@@ -1454,7 +1478,7 @@ function Library:Window(title, subtitle, Theme)
 						MaxTextSize = 9
 					}),
 				})
-				Library:SetColor({
+				Window:SetColor({
 					Element = Button1,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -1513,7 +1537,7 @@ function Library:Window(title, subtitle, Theme)
 						CornerRadius = UDim.new(0, 3)
 					}),
 				})
-				Library:SetColor({
+				Window:SetColor({
 					Element = Button1,
 					Property = 'ImageColor3',
 					Color = 'TextColor'
@@ -1536,7 +1560,7 @@ function Library:Window(title, subtitle, Theme)
 			run = false
 		end
 		if run then
-			NotificationUI.Parent = WindowUI.Notifications
+			NotificationUI.Parent = VernesityV2UI.Notifications
 			Library:Tween(NotificationUI, 0.25, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 				Size = UDim2.new(0.918, 0, 0.12, 0)
 			})
@@ -1560,7 +1584,7 @@ function Library:Window(title, subtitle, Theme)
 		local TabUI = Library:New('Frame', {
 			Name = tabName,
 			AnchorPoint = Vector2.new(1, 1),
-			Size = Library:SetSize(UDim2.new(0, 375, 0, 245), 'XY'),
+			Size = Window:SetSize(UDim2.new(0, 375, 0, 245), 'XY'),
 			BorderSizePixel = 0,
 			Position = UDim2.new(1, 0, 1, 0),
 			BackgroundColor3 = Theme.TabColor,
@@ -1572,7 +1596,7 @@ function Library:Window(title, subtitle, Theme)
 			Library:New('ScrollingFrame', {
 				Name = 'Elements',
 				AnchorPoint = Vector2.new(0.5, 0.5),
-				Size = Library:SetSize(UDim2.new(0, 370, 0, 240), 'XY'),
+				Size = Window:SetSize(UDim2.new(0, 370, 0, 240), 'XY'),
 				Position = UDim2.new(0.5, 0, 0.5, 0),
 				Selectable = false,
 				BackgroundTransparency = 1,
@@ -1652,7 +1676,7 @@ function Library:Window(title, subtitle, Theme)
 				Text = '',
 				Parent = TabButton
 			})
-			Library:SetColor({
+			Window:SetColor({
 				Element = TabButton.Image,
 				Property = 'ImageColor3',
 				Color = 'TextColor'
@@ -1684,7 +1708,7 @@ function Library:Window(title, subtitle, Theme)
 			})
 		end
 
-		Library:SetColor({
+		Window:SetColor({
 			Element = TabUI,
 			Property = 'BackgroundColor3',
 			Color = 'TabColor'
@@ -1698,7 +1722,7 @@ function Library:Window(title, subtitle, Theme)
 			Color = 'TextColor'
 		})
 
-		Library:MakeResizable({
+		Window:MakeResizable({
 			Element = TabUI,
 			Direction = 'XY'
 		}, {
@@ -1706,7 +1730,7 @@ function Library:Window(title, subtitle, Theme)
 			Direction = 'XY'
 		})
 
-		function Library:SelectTab(tab, btn)
+		function Window:SelectTab(tab, btn)
 			SelectedTab = tab
 			SelectedTabButton = btn
 			local X = 0.055
@@ -1774,11 +1798,11 @@ function Library:Window(title, subtitle, Theme)
 		end
 
 		if SelectedTab == nil then
-			Library:SelectTab(TabUI, TabButton)
+			Window:SelectTab(TabUI, TabButton)
 		end
 
 		TabButton.Button.Activated:Connect(function()
-			Library:SelectTab(TabUI, TabButton)
+			Window:SelectTab(TabUI, TabButton)
 		end)
 
 		function Tab:Edit(newTabName, newImageId)
@@ -1813,10 +1837,10 @@ function Library:Window(title, subtitle, Theme)
 				})
 			else
 				if SelectedTab == TabUI then
-					Library:SelectTab(Tabs:FindFirstChildWhichIsA'Frame', Menu:FindFirstChildWhichIsA'Frame')
+					Window:SelectTab(Tabs:FindFirstChildWhichIsA'Frame', Menu:FindFirstChildWhichIsA'Frame')
 				else
 					if SelectedTab ~= nil then
-						Library:SelectTab(SelectedTab, SelectedTabButton)
+						Window:SelectTab(SelectedTab, SelectedTabButton)
 					end
 				end
 			end
@@ -1826,7 +1850,7 @@ function Library:Window(title, subtitle, Theme)
 			local Section = {}
 			local SectionUI = Library:New('Frame', {
 				Name = sectionName,
-				Size = Library:SetSize(UDim2.new(0, 370, 0, 0), 'X'),
+				Size = Window:SetSize(UDim2.new(0, 370, 0, 0), 'X'),
 				BorderSizePixel = 0,
 				ClipsDescendants = true,
 				BackgroundTransparency = 1,
@@ -1839,7 +1863,7 @@ function Library:Window(title, subtitle, Theme)
 				}),
 				Library:New('TextLabel', {
 					Name = 'Text',
-					Size = Library:SetSize(UDim2.new(0, 358, 0, 24), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 358, 0, 24), 'X'),
 					BackgroundTransparency = 1,
 					FontSize = Enum.FontSize.Size14,
 					TextTransparency = 0.1,
@@ -1857,13 +1881,13 @@ function Library:Window(title, subtitle, Theme)
 				return SectionUI
 			end
 
-			Library:SetColor({
+			Window:SetColor({
 				Element = SectionUI.Text,
 				Property = 'TextColor3',
 				Color = 'TextColor'
 			})
 
-			Library:MakeResizable({
+			Window:MakeResizable({
 				Element = SectionUI,
 				Direction = 'X'
 			}, {
@@ -1891,7 +1915,7 @@ function Library:Window(title, subtitle, Theme)
 				local Button = {}
 				local ButtonUI = Library:New('Frame', {
 					Name = buttonName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -1901,7 +1925,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -1916,7 +1940,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -1934,7 +1958,7 @@ function Library:Window(title, subtitle, Theme)
 						BorderSizePixel = 0,
 						Text = '',
 						ZIndex = 2,
-						Size = Library:SetSize(UDim2.new(0, 330, 0, 30), 'X')
+						Size = Window:SetSize(UDim2.new(0, 330, 0, 30), 'X')
 					}),
 					Library:New('Frame', {
 						Name = 'InfoFrame',
@@ -1972,7 +1996,7 @@ function Library:Window(title, subtitle, Theme)
 				InfoTextLabels[ButtonUI.InfoText] = false
 				ArrowImages[ButtonUI.InfoFrame.ArrowImage] = false
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = ButtonUI,
 					Direction = 'X'
 				}, {
@@ -1986,7 +2010,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = ButtonUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -2030,10 +2054,25 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				Library:AddRippleEffect(ButtonUI.Button, ButtonUI)
+				
+				function Button:Activate()
+					func()
+				end
 
 				ButtonUI.Button.Activated:Connect(function()
-					func()
+					Button:Activate()
 				end)
+
+				local command, commandui = nil, nil
+
+				function Button:ConvertToCommand(cmdUI)
+					local name = string.gsub(buttonName, '%s', '')
+					command = cmdUI:AddCommand({name}, {}, info, function()
+						Button:Activate()
+					end)
+					commandui = cmdUI
+					return command
+				end
 
 				function Button:Edit(newName, newInfo, newFunc)
 					buttonName = newName
@@ -2042,12 +2081,22 @@ function Library:Window(title, subtitle, Theme)
 					ButtonUI.Name = buttonName
 					ButtonUI.Text.Text = buttonName
 					ButtonUI.InfoText.Text = info
+					if command and commandui then
+						local name = string.gsub(buttonName, '%s', '')
+						command:Edit({name}, {}, info, function()
+							func()
+						end)
+					end
 				end
 
 				function Button:Remove()
 					func = function() end
 					InfoTextLabels[ButtonUI.InfoText] = nil
 					ArrowImages[ButtonUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					ButtonUI:Destroy()
 				end
 
@@ -2055,10 +2104,11 @@ function Library:Window(title, subtitle, Theme)
 			end
 
 			function Section:Label(labelName)
+
 				local Label = {}
 				local LabelUI = Library:New('Frame', {
 					Name = labelName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -2068,7 +2118,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2086,7 +2136,7 @@ function Library:Window(title, subtitle, Theme)
 					return LabelUI
 				end
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = LabelUI,
 					Direction = 'X'
 				}, {
@@ -2094,7 +2144,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = LabelUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -2104,7 +2154,7 @@ function Library:Window(title, subtitle, Theme)
 					Color = 'ElementColor'
 				})
 
-				function Label:Edit(newName, newInfo, newFunc)
+				function Label:Edit(newName)
 					labelName = newName
 					LabelUI.Name = labelName
 					LabelUI.Text.Text = labelName
@@ -2124,7 +2174,7 @@ function Library:Window(title, subtitle, Theme)
 				local TextBox = {}
 				local TextBoxUI = Library:New('Frame', {
 					Name = textBoxName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -2134,7 +2184,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2149,7 +2199,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2166,7 +2216,7 @@ function Library:Window(title, subtitle, Theme)
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = '',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X')
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X')
 					}),
 					Library:New('Frame', {
 						Name = 'TextBoxFrame',
@@ -2232,7 +2282,7 @@ function Library:Window(title, subtitle, Theme)
 					return TextBoxUI
 				end
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = TextBoxUI,
 					Direction = 'X'
 				}, {
@@ -2246,7 +2296,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = TextBoxUI.TextBoxFrame.TextBoxFrame,
 					Property = 'BackgroundColor3',
 					Color = 'WindowColor'
@@ -2285,13 +2335,6 @@ function Library:Window(title, subtitle, Theme)
 					})
 				end)
 
-				TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.FocusLost:Connect(function()
-					func(TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text)
-					Library:Tween(TextBoxUI.TextBoxFrame.TextBoxFrame.UIStroke, 0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-						Transparency = 1
-					})
-				end)
-
 				function TextBox:GetText()
 					return TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text
 				end
@@ -2304,7 +2347,24 @@ function Library:Window(title, subtitle, Theme)
 					end
 				end
 
+				function TextBox:SetText(txt)
+					if typeof(txt) == 'string' then
+						func(txt)
+						TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text = txt
+						SetTextBoxSize()
+					else
+						warn('Please enter a string value')
+					end
+				end
+
 				SetTextBoxSize()
+
+				TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.FocusLost:Connect(function()
+					TextBox:SetText(TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text)
+					Library:Tween(TextBoxUI.TextBoxFrame.TextBoxFrame.UIStroke, 0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						Transparency = 1
+					})
+				end)
 
 				TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox:GetPropertyChangedSignal('Text'):Connect(function()
 					SetTextBoxSize()
@@ -2343,6 +2403,20 @@ function Library:Window(title, subtitle, Theme)
 					resizable = true
 				end)
 
+				local command, commandui = nil, nil
+
+				function TextBox:ConvertToCommand(cmdUI)
+					local name = string.gsub(textBoxName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'string'}, info, function(text)
+						if not text then
+							text = ''
+						end
+						TextBox:SetText(text)
+					end)
+					commandui = cmdUI
+					return command
+				end
+
 				function TextBox:Edit(newName, newInfo, newDefaultText, newFunc)
 					textBoxName = newName
 					info = newInfo
@@ -2351,12 +2425,25 @@ function Library:Window(title, subtitle, Theme)
 					TextBoxUI.Text.Text = textBoxName
 					TextBoxUI.InfoText.Text = newInfo
 					TextBoxUI.TextBoxFrame.TextBoxFrame.TextBox.Text = newDefaultText
+					if command and commandui then
+						local name = string.gsub(textBoxName, '%s', '')
+						command:Edit({name}, {'string'}, info, function(text)
+							if not text then
+								text = ''
+							end
+							TextBox:SetText(text)
+						end)
+					end
 				end
 
 				function TextBox:Remove()
 					func = function() end
 					InfoTextLabels[TextBoxUI.InfoText] = nil
 					ArrowImages[TextBoxUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					TextBoxUI:Destroy()
 				end
 
@@ -2366,10 +2453,11 @@ function Library:Window(title, subtitle, Theme)
 
 
 			function Section:Interactable(interactableName, info, interactableText, func)
+
 				local Interactable = {}
 				local InteractableUI = Library:New('Frame', {
 					Name = interactableName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -2379,7 +2467,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2394,7 +2482,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2411,7 +2499,7 @@ function Library:Window(title, subtitle, Theme)
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = '',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X')
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X')
 					}),
 					Library:New('Frame', {
 						Name = 'InteractableFrame',
@@ -2488,7 +2576,7 @@ function Library:Window(title, subtitle, Theme)
 					SetInteractableSize()
 				end)
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = InteractableUI,
 					Direction = 'X'
 				}, {
@@ -2502,7 +2590,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = InteractableUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -2557,10 +2645,25 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				Library:AddRippleEffect(InteractableUI.InteractableFrame:FindFirstChild'Interactable')
+				
+				function Interactable:Activate()
+					func()
+				end
 
 				InteractableUI.InteractableFrame:FindFirstChild'Interactable'.Activated:Connect(function()
-					func()
+					Interactable:Activate()
 				end)
+
+				local command, commandui = nil, nil
+
+				function Interactable:ConvertToCommand(cmdUI)
+					local name = string.gsub(interactableName, '%s', '')
+					command = cmdUI:AddCommand({name}, {}, info, function()
+						Interactable:Activate()
+					end)
+					commandui = cmdUI
+					return command
+				end
 
 				function Interactable:Edit(newName, newInfo, newInteractableText, newFunc)
 					interactableName = newName
@@ -2571,12 +2674,22 @@ function Library:Window(title, subtitle, Theme)
 					InteractableUI.Text.Text = interactableName
 					InteractableUI.InfoText.Text = info
 					InteractableUI.InteractableFrame:FindFirstChild'Interactable'.InteractableText.Text = interactableText
+					if command and commandui then
+						local name = string.gsub(interactableName, '%s', '')
+						command:Edit({name}, {}, info, function()
+							func()
+						end)
+					end
 				end
 
 				function Interactable:Remove()
 					func = function() end
 					InfoTextLabels[InteractableUI.InfoText] = nil
 					ArrowImages[InteractableUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					InteractableUI:Destroy()
 				end
 
@@ -2585,12 +2698,15 @@ function Library:Window(title, subtitle, Theme)
 
 
 
-			function Section:ColorPicker(colorPickerText, info, defaultColor, func)
+			function Section:ColorPicker(colorPickerName, info, defaultColor, func)
 
 				local ColorPicker = {}
+
+				local h1, s1, v1 = defaultColor:ToHSV()
+
 				local ColorPickerUI = Library:New('Frame', {
-					Name = colorPickerText,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Name = colorPickerName,
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					Active = true,
 					BorderSizePixel = 0,
@@ -2603,7 +2719,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -2611,14 +2727,14 @@ function Library:Window(title, subtitle, Theme)
 						TextTransparency = 0.1,
 						TextSize = 12,
 						TextColor3 = Theme.TextColor,
-						Text = colorPickerText,
+						Text = colorPickerName,
 						Font = Enum.Font.Gotham,
 						TextXAlignment = Enum.TextXAlignment.Left
 					}),
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 25),
 						BorderSizePixel = 0,
@@ -2634,7 +2750,7 @@ function Library:Window(title, subtitle, Theme)
 						ZIndex = 2,
 						Active = true,
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -2666,7 +2782,7 @@ function Library:Window(title, subtitle, Theme)
 							Active = true,
 							Size = UDim2.new(0, 61, 0, 16),
 							Position = UDim2.new(0.434, 0, 0.552, 0),
-							BackgroundColor3 = Color3.fromRGB(180, 127, 255),
+							BackgroundColor3 = Theme.SecondaryElementColor,
 							AutoButtonColor = false,
 							FontSize = Enum.FontSize.Size11,
 							BorderSizePixel = 0,
@@ -2704,12 +2820,11 @@ function Library:Window(title, subtitle, Theme)
 						ZIndex = 4,
 						Active = true,
 						AnchorPoint = Vector2.new(0.5, 0.96),
-						Size = Library:SetSize(UDim2.new(0, 345, 0, 16), 'X'),
-						BorderColor3 = Color3.fromRGB(40, 40, 40),
+						Size = Window:SetSize(UDim2.new(0, 345, 0, 16), 'X'),
 						Position = UDim2.new(0.5, 0, 0, 192),
 						BorderSizePixel = 0,
 						BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-						ImageColor3 = defaultColor,
+						ImageColor3 = Color3.fromHSV(h1, s1, 1),
 						Image = Library.Icons.ColorPickerValue,
 						SliceCenter = Rect.new(10, 10, 90, 90)
 					}, {
@@ -2737,8 +2852,7 @@ function Library:Window(title, subtitle, Theme)
 						ZIndex = 4,
 						Active = true,
 						AnchorPoint = Vector2.new(0.5, 0.64),
-						Size = Library:SetSize(UDim2.new(0, 345, 0, 112), 'X'),
-						BorderColor3 = Color3.fromRGB(40, 40, 40),
+						Size = Window:SetSize(UDim2.new(0, 345, 0, 112), 'X'),
 						Position = UDim2.new(0.5, 0, 0, 128),
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						Image = Library.Icons.ColorPickerRGB,
@@ -2773,14 +2887,14 @@ function Library:Window(title, subtitle, Theme)
 				local rgb = ColorPickerUI.RGB
 				local value = ColorPickerUI.Value
 				local preview = ColorPickerUI.ColorPreviewFrame.ColorPreview
-				local selectedColor = Color3.fromHSV(1,1,1)
-				local colorData = {1,1,1}
+				local selectedColor = defaultColor
+				local colorData = {h1,s1,v1}
 				local mouse1down = false
 				local mouse1down2 = false
 
 				Library:AddRippleEffect(ColorPickerUI.ColorPreviewFrame.ApplyButton)
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = ColorPickerUI,
 					Direction = 'X'
 				}, {
@@ -2800,7 +2914,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = ColorPickerUI,
 					Property = 'BackgroundColor3',
 					Color = 'ElementColor'
@@ -2858,7 +2972,7 @@ function Library:Window(title, subtitle, Theme)
 					colorData = {hue or colorData[1],sat or colorData[2],val or colorData[3]}
 					selectedColor = Color3.fromHSV(colorData[1],colorData[2],colorData[3])
 					preview.BackgroundColor3 = selectedColor
-					value.ImageColor3 = Color3.fromHSV(colorData[1],colorData[2],1)
+					value.ImageColor3 = Color3.fromHSV(colorData[1], colorData[2], 1)
 				end
 				local function inBounds(frame)
 					local x,y = mouse.X - frame.AbsolutePosition.X,mouse.Y - frame.AbsolutePosition.Y
@@ -2923,32 +3037,74 @@ function Library:Window(title, subtitle, Theme)
 						end
 					end
 				end)
+
 				function ColorPicker:GetCurrentColor()
 					return ColorPickerUI.ColorPreviewFrame.ColorPreview.BackgroundColor3
 				end
+
+				function ColorPicker:SetColor(color)
+					local h, s, v = color:ToHSV()
+					UpdateCursorPosition(h, s, v)
+					setColor(h, s, v)
+					updateRGB()
+					func(color)
+				end
+
 				ColorPickerUI.ColorPreviewFrame.ApplyButton.Activated:Connect(function()
 					func(ColorPickerUI.ColorPreviewFrame.ColorPreview.BackgroundColor3)
 				end)
 
-				function ColorPicker:Edit(newColorPickerText, newInfo, newDefaultColor, newFunc)
+				local command, commandui = nil, nil
+
+				function ColorPicker:ConvertToCommand(cmdUI)
+					local name = string.gsub(colorPickerName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'Color3 value'}, info, function(clr)
+						clr = Library:StringToColor3(clr)
+						if clr ~= nil then
+							ColorPicker:SetColor(clr)
+						else
+							warn('Please enter a Color3 value')
+						end
+					end)
+					commandui = cmdUI
+					return command
+				end
+
+				function ColorPicker:Edit(newColorPickerName, newInfo, newDefaultColor, newFunc)
 					func = newFunc
-					colorPickerText = newColorPickerText
+					colorPickerName = newColorPickerName
 					defaultColor = newDefaultColor
 					info = newInfo
 					preview.BackgroundColor3 = defaultColor
-					value.ImageColor3 = defaultColor
-					ColorPickerUI.Name = colorPickerText
-					ColorPickerUI.Text.Text = colorPickerText
+					ColorPickerUI.Name = newColorPickerName
+					ColorPickerUI.Text.Text = newColorPickerName
 					ColorPickerUI.InfoText.Text = info
-					h, s, v = defaultColor:ToHSV()
+					local h, s, v = defaultColor:ToHSV()
 					UpdateCursorPosition(h, s, v)
+					setColor(h, s, v)
+					updateRGB()
+					if command and commandui then
+						local name = string.gsub(colorPickerName, '%s', '')
+						command:Edit({name}, {'Color3 value'}, info, function(clr)
+							clr = Library:StringToColor3(clr)
+							if clr ~= nil then
+								ColorPicker:SetColor(clr)
+							else
+								warn('Please enter a Color3 value')
+							end
+						end)
+					end
 				end
 
 				function ColorPicker:Remove()
-					ColorPickerUI:Destroy()
 					InfoTextLabels[ColorPickerUI.InfoText] = nil
 					ArrowImages[ColorPickerUI.InfoFrame.ArrowImage] = nil
 					func = function() end
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
+					ColorPickerUI:Destroy()
 				end
 
 				return ColorPicker
@@ -2961,7 +3117,7 @@ function Library:Window(title, subtitle, Theme)
 				local Switch = {}
 				local SwitchUI = Library:New('Frame', {
 					Name = switchName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -2973,7 +3129,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -2988,7 +3144,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 25),
 						BorderSizePixel = 0,
@@ -3031,7 +3187,7 @@ function Library:Window(title, subtitle, Theme)
 						ZIndex = 2,
 						Active = true,
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 330, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 330, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -3110,7 +3266,7 @@ function Library:Window(title, subtitle, Theme)
 					})
 				end
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = SwitchUI,
 					Direction = 'X'
 				}, {
@@ -3124,7 +3280,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = SwitchUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -3176,31 +3332,66 @@ function Library:Window(title, subtitle, Theme)
 
 				Switches[SwitchFrame] = toggled
 
-				SwitchUI.Button.Activated:Connect(function()
+				function Switch:On()
+					toggled = true
+					Switches[SwitchFrame] = true
+					func(true)
+					Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						BackgroundColor3 = Theme.SecondaryElementColor
+					})
+					Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						AnchorPoint = Vector2.new(1, 0.5),
+						Position = UDim2.new(0.88, 0, 0.5, 0)
+					})
+				end
+
+				function Switch:Off()
+					toggled = false
+					Switches[SwitchFrame] = false
+					func(false)
+					Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						BackgroundColor3 = Theme.WindowColor
+					})
+					Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						AnchorPoint = Vector2.new(0, 0.5),
+						Position = UDim2.new(0.12, 0, 0.5, 0)
+					})
+				end
+
+				function Switch:Toggle()
 					toggled = not toggled
-					Switches[SwitchFrame] = toggled
-					func(toggled)
 					if toggled then
-						Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							BackgroundColor3 = Theme.SecondaryElementColor
-						})
-						Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							AnchorPoint = Vector2.new(1, 0.5),
-							Position = UDim2.new(0.88, 0, 0.5, 0)
-						})
+						Switch:On()
 					else
-						Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							BackgroundColor3 = Theme.WindowColor
-						})
-						Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							AnchorPoint = Vector2.new(0, 0.5),
-							Position = UDim2.new(0.12, 0, 0.5, 0)
-						})
+						Switch:Off()
 					end
+				end
+
+				SwitchUI.Button.Activated:Connect(function()
+					Switch:Toggle()
 				end)
 
 				function Switch:IsToggled()
 					return toggled
+				end
+
+				local command, commandui = nil, nil
+
+				function Switch:ConvertToCommand(cmdUI)
+					local name = string.gsub(switchName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'on/off'}, info, function(tgled)
+						if not tgled then
+							Switch:Toggle()
+						else
+							if tostring(tgled):lower() == 'on' then
+								Switch:On()
+							elseif tostring(tgled):lower() == 'off' then
+								Switch:Off()
+							end
+						end
+					end)
+					commandui = cmdUI
+					return command
 				end
 
 				function Switch:Edit(newSwitchName, newInfo, newToggled, newFunc)
@@ -3213,21 +3404,23 @@ function Library:Window(title, subtitle, Theme)
 					SwitchUI.InfoText.Text = newInfo
 					Switches[SwitchFrame] = toggled
 					if toggled then
-						Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							BackgroundColor3 = Theme.SecondaryElementColor
-						})
-						Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							AnchorPoint = Vector2.new(1, 0.5),
-							Position = UDim2.new(0.88, 0, 0.5, 0)
-						})
+						Switch:On()
 					else
-						Library:Tween(SwitchFrame, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							BackgroundColor3 = Theme.WindowColor
-						})
-						Library:Tween(SwitchFrame.Circle, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							AnchorPoint = Vector2.new(0, 0.5),
-							Position = UDim2.new(0.12, 0, 0.5, 0)
-						})
+						Switch:Off()
+					end
+					if command and commandui then
+						local name = string.gsub(switchName, '%s', '')
+						command:Edit({name}, {'on/off'}, info, function(tgled)
+							if not tgled then
+								Switch:Toggle()
+							else
+								if tostring(tgled):lower() == 'on' then
+									Switch:On()
+								elseif tostring(tgled):lower() == 'off' then
+									Switch:Off()
+								end
+							end
+						end)
 					end
 				end
 
@@ -3236,6 +3429,10 @@ function Library:Window(title, subtitle, Theme)
 					Switches[SwitchFrame] = nil
 					InfoTextLabels[SwitchUI.InfoText] = nil
 					ArrowImages[SwitchUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					SwitchUI:Destroy()
 				end
 
@@ -3249,7 +3446,7 @@ function Library:Window(title, subtitle, Theme)
 				local Paragraph = {}
 				local ParagraphUI = Library:New('Frame', {
 					Name = text1,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 50), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 50), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -3261,7 +3458,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.5, 0),
-						Size = Library:SetSize(UDim2.new(0, 340, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 340, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.5, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -3276,7 +3473,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text2',
 						AnchorPoint = Vector2.new(0.5, 0),
-						Size = Library:SetSize(UDim2.new(0, 340, 0, 12), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 340, 0, 12), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.5, 0, 0.58, 0),
 						BorderSizePixel = 0,
@@ -3291,7 +3488,7 @@ function Library:Window(title, subtitle, Theme)
 					})
 				})
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = ParagraphUI,
 					Direction = 'X'
 				}, {
@@ -3302,7 +3499,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = ParagraphUI,
 					Property = 'BackgroundColor3',
 					Color = 'ElementColor'
@@ -3337,9 +3534,9 @@ function Library:Window(title, subtitle, Theme)
 
 
 
-			function Section:Toggle(ToggleName, info, toggled, func)
-				local Toggle = {}
+			function Section:Toggle(toggleName, info, toggled, func)
 
+				local Toggle = {}
 				local transparency = 0
 
 				if not toggled then
@@ -3347,8 +3544,8 @@ function Library:Window(title, subtitle, Theme)
 				end
 
 				local ToggleUI = Library:New('Frame', {
-					Name = ToggleName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Name = toggleName,
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -3360,7 +3557,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						BorderSizePixel = 0,
@@ -3368,14 +3565,14 @@ function Library:Window(title, subtitle, Theme)
 						TextTransparency = 0.1,
 						TextSize = 12,
 						TextColor3 = Theme.TextColor,
-						Text = ToggleName,
+						Text = toggleName,
 						Font = Enum.Font.Gotham,
 						Position = UDim2.new(0.3, 0, 0, 0)
 					}),
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 25),
 						BorderSizePixel = 0,
@@ -3418,7 +3615,7 @@ function Library:Window(title, subtitle, Theme)
 						ZIndex = 2,
 						Active = true,
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 330, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 330, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -3467,7 +3664,7 @@ function Library:Window(title, subtitle, Theme)
 
 				local ToggleFrame = ToggleUI.ToggleFrame
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = ToggleUI,
 					Direction = 'X'
 				}, {
@@ -3481,7 +3678,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = ToggleUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -3535,40 +3732,84 @@ function Library:Window(title, subtitle, Theme)
 					resizable = true
 				end)
 
-				ToggleUI.Button.Activated:Connect(function()
-					toggled = not toggled
+				function Toggle:On()
+					toggled = true
+					Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						ImageTransparency = 0
+					})
 					func(toggled)
+				end
+
+				function Toggle:Off()
+					toggled = false
+					Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
+						ImageTransparency = 1
+					})
+					func(toggled)
+				end
+
+				function Toggle:Toggle()
+					toggled = not toggled
 					if toggled then
-						Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							ImageTransparency = 0
-						})
+						Toggle:On()
 					else
-						Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							ImageTransparency = 1
-						})
+						Toggle:Off()
 					end
+				end
+
+				ToggleUI.Button.Activated:Connect(function()
+					Toggle:Toggle()
 				end)
 
 				function Toggle:IsToggled()
 					return toggled
 				end
 
+				local command, commandui = nil, nil
+
+				function Toggle:ConvertToCommand(cmdUI)
+					local name = string.gsub(toggleName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'on/off'}, info, function(tgled)
+						if not tgled then
+							Toggle:Toggle()
+						else
+							if tostring(tgled):lower() == 'on' then
+								Toggle:On()
+							elseif tostring(tgled):lower() == 'off' then
+								Toggle:Off()
+							end
+						end
+					end)
+					commandui = cmdUI
+					return command
+				end
+
 				function Toggle:Edit(newToggleName, newInfo, newToggled, newFunc)
-					ToggleName = newToggleName
+					toggleName = newToggleName
 					info = newInfo
 					func = newFunc
 					toggled = newToggled
-					ToggleUI.Name = ToggleName
-					ToggleUI.Text.Text = ToggleName
+					ToggleUI.Name = toggleName
+					ToggleUI.Text.Text = toggleName
 					ToggleUI.InfoText.Text = newInfo
 					if toggled then
-						Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							ImageTransparency = 0
-						})
+						Toggle:On()
 					else
-						Library:Tween(ToggleFrame.Toggle.Image, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
-							ImageTransparency = 1
-						})
+						Toggle:Off()
+					end
+					if command and commandui then
+						local name = string.gsub(toggleName, '%s', '')
+						command:Edit({name}, {'on/off'}, info, function(tgled)
+							if not tgled then
+								Toggle:Toggle()
+							else
+								if tostring(tgled):lower() == 'on' then
+									Toggle:On()
+								elseif tostring(tgled):lower() == 'off' then
+									Toggle:Off()
+								end
+							end
+						end)
 					end
 				end
 
@@ -3576,6 +3817,10 @@ function Library:Window(title, subtitle, Theme)
 					func = function() end
 					InfoTextLabels[ToggleUI.InfoText] = nil
 					ArrowImages[ToggleUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					ToggleUI:Destroy()
 				end
 
@@ -3585,8 +3830,8 @@ function Library:Window(title, subtitle, Theme)
 
 
 			function Section:Slider(sliderName, info, minValue, maxValue, defaultValue, func)
-				local Slider = {}
 
+				local Slider = {}				
 				local mouse = game.Players.LocalPlayer:GetMouse()
 				local held = false
 				local e = true
@@ -3601,7 +3846,7 @@ function Library:Window(title, subtitle, Theme)
 
 				local SliderUI = Library:New('Frame', {
 					Name = sliderName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 50), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 50), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -3613,7 +3858,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -3628,7 +3873,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 42),
 						BorderSizePixel = 0,
@@ -3661,7 +3906,7 @@ function Library:Window(title, subtitle, Theme)
 					}),
 					Library:New('TextButton', {
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -3671,7 +3916,7 @@ function Library:Window(title, subtitle, Theme)
 						Selectable = true,
 						AnchorPoint = Vector2.new(0.25, 0),
 						ClipsDescendants = true,
-						Size = Library:SetSize(UDim2.new(0, 300, 0, 5), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 300, 0, 5), 'X'),
 						Position = UDim2.new(0.25, 0, 0, 33),
 						Active = false,
 						BorderSizePixel = 0,
@@ -3730,7 +3975,7 @@ function Library:Window(title, subtitle, Theme)
 				InfoTextLabels[SliderUI.InfoText] = false
 				ArrowImages[SliderUI.InfoFrame.ArrowImage] = false
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = SliderUI,
 					Direction = 'X'
 				}, {
@@ -3747,7 +3992,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = SliderUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -3810,6 +4055,21 @@ function Library:Window(title, subtitle, Theme)
 				local bar = slider.Bar
 				local textbox = SliderUI.ValueFrame.Value
 
+				function Slider:SetValue(num)
+					if tonumber(num) then
+						percentage = tonumber(num)
+						Library:Tween(bar, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+							Size = UDim2.new((num - minval) / (maxval - minval), 0, 1, 0)
+						})
+						if e then
+							func(percentage)
+						end
+					else
+						warn('Please enter a number')
+					end
+					textbox.Text = percentage
+				end
+
 				percentage = defaultValue
 				textbox.Text = defaultValue
 				bar.Size = UDim2.new((defaultValue - minval) / (maxval - minval), 0, 1, 0)
@@ -3844,22 +4104,22 @@ function Library:Window(title, subtitle, Theme)
 					end
 				end)
 				textbox.FocusLost:Connect(function()
-					if typeof(tonumber(textbox.Text)) == 'number' then
-						percentage = tonumber(textbox.Text)
-						Library:Tween(bar, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-							Size = UDim2.new((textbox.Text - minval) / (maxval - minval), 0, 1, 0)
-						})
-						if e then
-							func(percentage)
-						end
-					else
-						warn('Please enter a number')
-						textbox.Text = percentage
-					end
+					Slider:SetValue(textbox.Text)
 				end)
 
 				function Slider:GetValue()
 					return tonumber(textbox.Text)
+				end
+
+				local command, commandui = nil, nil
+
+				function Slider:ConvertToCommand(cmdUI)
+					local name = string.gsub(sliderName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'number'}, info, function(num)
+						Slider:SetValue(num)
+					end)
+					commandui = cmdUI
+					return command
 				end
 
 				function Slider:Edit(newSliderName, newInfo, newMinValue, newMaxValue, newDefaultValue, newFunc)
@@ -3879,12 +4139,22 @@ function Library:Window(title, subtitle, Theme)
 					SliderUI.Name = newSliderName
 					e = true
 					textbox.Text = defaultValue
+					if command and commandui then
+						local name = string.gsub(sliderName, '%s', '')
+						command:Edit({name}, {'number'}, info, function(num)
+							Slider:SetValue(num)
+						end)
+					end
 				end
 
 				function Slider:Remove()
 					func = function() end
 					InfoTextLabels[SliderUI.InfoText] = nil
 					ArrowImages[SliderUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					SliderUI:Destroy()
 				end
 
@@ -3894,11 +4164,20 @@ function Library:Window(title, subtitle, Theme)
 
 
 			function Section:Keybind(keybindName, info, default, func)
+
 				local Keybind = {}
 				local Device = Library:GetDevice()
+
+				if #default > 1 or #default < 1 then
+					warn('Error: Invalid input length. Please enter a single character for the keybind.')
+					return
+				end
+
+				default = default:upper()
+
 				local KeybindUI = Library:New('Frame', {
 					Name = keybindName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -3910,7 +4189,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -3925,7 +4204,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'InfoText',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 25),
 						BorderSizePixel = 0,
@@ -3958,7 +4237,7 @@ function Library:Window(title, subtitle, Theme)
 					}),
 					Library:New('TextButton', {
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -4019,7 +4298,7 @@ function Library:Window(title, subtitle, Theme)
 					Parent = KeybindUI.KeybindFrame.KeybindButton
 				})
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = KeybindUI,
 					Direction = 'X'
 				}, {
@@ -4033,7 +4312,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = KeybindUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -4096,35 +4375,37 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				local function ripple()
-					local g = KeybindFrame.Parent
-					local ms = game.Players.LocalPlayer:GetMouse()
-					local Circle = Library:New('ImageLabel', {
-						Name = 'Circle',
-						Parent = g,
-						BackgroundColor3 = Theme.SecondaryElementColor,
-						ImageColor3 = Theme.SecondaryElementColor,
-						BackgroundTransparency = 1,
-						BorderSizePixel = 0,
-						Image = Library.Icons.Circle,
-						ImageTransparency = 0.6
-					})
-					local len, size = 1, nil
-					Circle.Position = UDim2.new(-0.5, 0, 0.5, 0)
-					if g.AbsoluteSize.X >= g.AbsoluteSize.Y then
-						size = (g.AbsoluteSize.X * 1.5)
-					else
-						size = (g.AbsoluteSize.Y * 1.5)
+					if KeybindFrame.Parent then
+						local g = KeybindFrame.Parent
+						local ms = game.Players.LocalPlayer:GetMouse()
+						local Circle = Library:New('ImageLabel', {
+							Name = 'Circle',
+							Parent = g,
+							BackgroundColor3 = Theme.SecondaryElementColor,
+							ImageColor3 = Theme.SecondaryElementColor,
+							BackgroundTransparency = 1,
+							BorderSizePixel = 0,
+							Image = Library.Icons.Circle,
+							ImageTransparency = 0.6
+						})
+						local len, size = 1, nil
+						Circle.Position = UDim2.new(-0.5, 0, 0.5, 0)
+						if g.AbsoluteSize.X >= g.AbsoluteSize.Y then
+							size = (g.AbsoluteSize.X * 1.5)
+						else
+							size = (g.AbsoluteSize.Y * 1.5)
+						end
+						Library:Tween(Circle, len, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+							ImageTransparency = 1
+						})
+						Circle:TweenSizeAndPosition(UDim2.new(0, size, 0, size), UDim2.new(0.5, (-size / 2), 0.5, (-size / 2)), 'Out', 'Quad', len, true, nil)
+						wait(len + 0.1)
+						Circle:Destroy()
 					end
-					Library:Tween(Circle, len, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-						ImageTransparency = 1
-					})
-					Circle:TweenSizeAndPosition(UDim2.new(0, size, 0, size), UDim2.new(0.5, (-size / 2), 0.5, (-size / 2)), 'Out', 'Quad', len, true, nil)
-					wait(len + 0.1)
-					Circle:Destroy()
 				end
 
 				local Choosing = false
-				local currentKey = default
+				local currentKey = Library:CharacterToKeyCode(default:lower()).Name
 				local MobileButton = nil
 
 				KeybindFrame.Parent.Activated:Connect(function()
@@ -4142,6 +4423,39 @@ function Library:Window(title, subtitle, Theme)
 					end
 				end)
 
+				function Keybind:SetKeybind(newKeybind)
+					if #newKeybind > 1 or #newKeybind < 1 then
+						warn('Error: Invalid input length. Please enter a single character for the keybind.')
+					else
+						newKeybind = newKeybind:upper()
+						default = newKeybind
+						currentKey = Library:CharacterToKeyCode(newKeybind:lower()).Name
+						KeybindFrame.Text = newKeybind
+						if MobileButton ~= nil then
+							MobileButton:FindFirstChild('Text').Text = newKeybind
+						end
+					end
+				end
+
+				local command, commandui = nil, nil
+
+				function Keybind:ConvertToCommand(cmdUI)
+					local name = string.gsub(keybindName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'keybind'}, info, function(key)
+						if not key then
+							func(currentKey)
+						else
+							if #key > 1 or #key < 1 then
+								warn('Error: Invalid input length. Please enter a single character for the keybind.')
+							else
+								Keybind:SetKeybind(key)
+							end
+						end
+					end)
+					commandui = cmdUI
+					return command
+				end
+
 				if Device == 'PC' then
 					KeybindFrame.Parent.Activated:Connect(function()
 						Choosing = true
@@ -4157,6 +4471,7 @@ function Library:Window(title, subtitle, Theme)
 							input = game:GetService('UserInputService').InputBegan:Wait()
 							Choosing = true
 						until
+						
 						input.KeyCode.Name ~= 'Unknown' and input.UserInputType == Enum.UserInputType.Keyboard
 						currentKey = input.KeyCode.Name
 						KeybindFrame.Text = Library:KeyCodeToCharacter(input.KeyCode):upper()
@@ -4186,7 +4501,7 @@ function Library:Window(title, subtitle, Theme)
 							Size = UDim2.new(0.038, 0, 0.883, 0),
 							BorderSizePixel = 0,
 							BackgroundColor3 = Theme.ElementColor,
-							Parent = WindowUI.MobileUI
+							Parent = VernesityV2UI.MobileUI
 						}, {
 							Library:New('UIAspectRatioConstraint'),
 							Library:New('UICorner', {
@@ -4220,11 +4535,9 @@ function Library:Window(title, subtitle, Theme)
 								BorderSizePixel = 0,
 								AutoButtonColor = false,
 								Text = ''
-							}, {
-								Library:New('UIAspectRatioConstraint')
 							})
 						})
-						Library:SetColor({
+						Window:SetColor({
 							Element = MobileButton.Text,
 							Property = 'TextColor3',
 							Color = 'TextColor'
@@ -4242,12 +4555,13 @@ function Library:Window(title, subtitle, Theme)
 							func(KeybindFrame.Text)
 						end)
 					end
+
 					KeybindFrame.FocusLost:Connect(function()
-						if #KeybindFrame.Text > 1 then
-							warn('Error: Invalid input length. Please enter only a single character for the keybind.')
+						if #KeybindFrame.Text > 1 or #KeybindFrame.Text < 1 then
+							warn('Error: Invalid input length. Please enter a single character for the keybind.')
 							KeybindFrame.Text = currentKey
 						else
-							currentKey = Library:CharacterToKeyCode(KeybindFrame.Text).Name
+							currentKey = Library:CharacterToKeyCode(KeybindFrame.Text:lower()).Name
 						end
 						if MobileButton ~= nil then
 							MobileButton:FindFirstChild('Text').Text = KeybindFrame.Text
@@ -4264,15 +4578,24 @@ function Library:Window(title, subtitle, Theme)
 				function Keybind:Edit(newName, newInfo, newDefault, newFunc)
 					keybindName = newName
 					info = newInfo
-					default = newDefault
 					func = newFunc
 					KeybindUI.Name = keybindName
 					KeybindUI.InfoText.Text = info
 					KeybindUI.Text.Text = keybindName
-					KeybindFrame.Text = newDefault
-					currentKey = newDefault
-					if MobileButton ~= nil then
-						MobileButton:FindFirstChild('Text').Text = newDefault
+					Keybind:SetKeybind(newDefault)
+					if command and commandui then
+						local name = string.gsub(keybindName, '%s', '')
+						command:Edit({name}, {'keybind'}, info, function(key)
+							if not key then
+								func(currentKey)
+							else
+								if #key > 1 or #key < 1 then
+									warn('Error: Invalid input length. Please enter a single character for the keybind.')
+								else
+									Keybind:SetKeybind(key)
+								end
+							end
+						end)
 					end
 				end
 
@@ -4283,6 +4606,10 @@ function Library:Window(title, subtitle, Theme)
 					end
 					InfoTextLabels[KeybindUI.InfoText] = nil
 					ArrowImages[KeybindUI.InfoFrame.ArrowImage] = nil
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					KeybindUI:Destroy()
 				end
 
@@ -4292,11 +4619,11 @@ function Library:Window(title, subtitle, Theme)
 
 
 			function Section:Dropdown(dropdownName, list, default, func)
-				local Dropdown = {}
 
+				local Dropdown = {}
 				local DropdownUI = Library:New('Frame', {
 					Name = dropdownName,
-					Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+					Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 					ClipsDescendants = true,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Theme.ElementColor,
@@ -4308,7 +4635,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('TextLabel', {
 						Name = 'Text',
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 325, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -4350,7 +4677,7 @@ function Library:Window(title, subtitle, Theme)
 					Library:New('ScrollingFrame', {
 						Name = 'Elements',
 						Selectable = false,
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 0), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 0), 'X'),
 						Position = UDim2.new(0, 0, 0, 30),
 						BorderSizePixel = 0,
 						BackgroundTransparency = 1,
@@ -4368,7 +4695,7 @@ function Library:Window(title, subtitle, Theme)
 					}),
 					Library:New('TextButton', {
 						Name = 'Button',
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 30), 'X'),
 						BackgroundTransparency = 1,
 						BorderSizePixel = 0,
 						Text = ''
@@ -4418,7 +4745,7 @@ function Library:Window(title, subtitle, Theme)
 					})
 				})
 
-				Library:MakeResizable({
+				Window:MakeResizable({
 					Element = DropdownUI,
 					Direction = 'X'
 				}, {
@@ -4432,7 +4759,7 @@ function Library:Window(title, subtitle, Theme)
 					Direction = 'X'
 				})
 
-				Library:SetColor({
+				Window:SetColor({
 					Element = DropdownUI.Text,
 					Property = 'TextColor3',
 					Color = 'TextColor'
@@ -4515,6 +4842,23 @@ function Library:Window(title, subtitle, Theme)
 					resizable = true
 				end)
 
+				function Dropdown:Select(name)
+					DropdownUI.Text.Text = dropdownName..': '..name
+					Opened = false
+					ArrowImages[DropdownUI.InfoFrame.ArrowImage] = false
+					func(name)
+					Library:Tween(DropdownUI, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						Size = UDim2.new(0, DropdownUI.Size.X.Offset, 0, 30)
+					})
+					Library:Tween(DropdownUI.Elements, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						Size = UDim2.new(0, DropdownUI.Size.X.Offset, 0, 0)
+					})
+					Library:Tween(DropdownUI.InfoFrame.ArrowImage, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+						Rotation = 0,
+						ImageColor3 = Theme.TextColor
+					})
+				end
+
 				function Dropdown:Button(name)
 
 					local Dropdown_Button = {}
@@ -4522,7 +4866,7 @@ function Library:Window(title, subtitle, Theme)
 					local DropdownButton = Library:New('Frame', {
 						Name = name,
 						AnchorPoint = Vector2.new(0.3, 0),
-						Size = Library:SetSize(UDim2.new(0, 360, 0, 15), 'X'),
+						Size = Window:SetSize(UDim2.new(0, 360, 0, 15), 'X'),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.3, 0, 0, 0),
 						BorderSizePixel = 0,
@@ -4531,7 +4875,7 @@ function Library:Window(title, subtitle, Theme)
 						Library:New('TextLabel', {
 							Name = 'Text',
 							AnchorPoint = Vector2.new(0.5, 0.5),
-							Size = Library:SetSize(UDim2.new(0, 325, 0, 15), 'X'),
+							Size = Window:SetSize(UDim2.new(0, 325, 0, 15), 'X'),
 							BackgroundTransparency = 1,
 							Position = UDim2.new(0.5, 0, 0.5, 0),
 							BorderSizePixel = 0,
@@ -4545,7 +4889,7 @@ function Library:Window(title, subtitle, Theme)
 						}),
 						Library:New('TextButton', {
 							Name = 'Button',
-							Size = Library:SetSize(UDim2.new(0, 360, 0, 15), 'X'),
+							Size = Window:SetSize(UDim2.new(0, 360, 0, 15), 'X'),
 							BackgroundTransparency = 1,
 							BorderSizePixel = 0,
 							Text = ''
@@ -4554,7 +4898,7 @@ function Library:Window(title, subtitle, Theme)
 
 					amountOfButtons = amountOfButtons + 1
 
-					Library:MakeResizable({
+					Window:MakeResizable({
 						Element = DropdownButton,
 						Direction = 'X'
 					}, {
@@ -4565,7 +4909,7 @@ function Library:Window(title, subtitle, Theme)
 						Direction = 'X'
 					})
 
-					Library:SetColor({
+					Window:SetColor({
 						Element = DropdownButton.Text,
 						Property = 'TextColor3',
 						Color =  'TextColor'
@@ -4584,20 +4928,7 @@ function Library:Window(title, subtitle, Theme)
 					end)
 
 					DropdownButton.Button.Activated:Connect(function()
-						DropdownUI.Text.Text = dropdownName..': '..DropdownButton.Name
-						Opened = false
-						ArrowImages[DropdownUI.InfoFrame.ArrowImage] = false
-						func(DropdownButton.Name)
-						Library:Tween(DropdownUI, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-							Size = UDim2.new(0, DropdownUI.Size.X.Offset, 0, 30)
-						})
-						Library:Tween(DropdownUI.Elements, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-							Size = UDim2.new(0, DropdownUI.Size.X.Offset, 0, 0)
-						})
-						Library:Tween(DropdownUI.InfoFrame.ArrowImage, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
-							Rotation = 0,
-							ImageColor3 = Theme.TextColor
-						})
+						Dropdown:Select(name)
 					end)
 
 					function Dropdown_Button:GetElement()
@@ -4661,6 +4992,26 @@ function Library:Window(title, subtitle, Theme)
 					end
 				end)
 
+				local command, commandui = nil, nil
+
+				function Dropdown:ConvertToCommand(cmdUI)
+					local name = string.gsub(dropdownName, '%s', '')
+					command = cmdUI:AddCommand({name}, {'option'}, '', function(option)
+						if option then
+							local lowered = {}
+							local found = false
+							for i, v in pairs(list) do
+								if not found and string.find(v:lower(), option:lower()) then
+									found = true
+									Dropdown:Select(v)
+								end
+							end
+						end
+					end)
+					commandui = cmdUI
+					return command
+				end
+
 				function Dropdown:Edit(newDropdownName, newList, newDefault, newFunc)
 					dropdownName = newDropdownName
 					list = newList
@@ -4685,10 +5036,30 @@ function Library:Window(title, subtitle, Theme)
 					if Opened then
 						ChangeSize()
 					end
+
+					if command and commandui then
+						local name = string.gsub(dropdownName, '%s', '')
+						command:Edit({name}, {'option'}, '', function(option)
+							if option then
+								local lowered = {}
+								local found = false
+								for i, v in pairs(list) do
+									if not found and string.find(v:lower(), option:lower()) then
+										found = true
+										Dropdown:Select(v)
+									end
+								end
+							end
+						end)
+					end
 				end
 
 				function Dropdown:Remove()
 					amountOfButtons = 0
+					if command and commandui then
+						command:Remove()
+						command, commandui = nil, nil
+					end
 					DropdownUI:Destroy()
 				end
 
@@ -4707,6 +5078,11 @@ function Library:Window(title, subtitle, Theme)
 				end
 
 				local PlayerListUI = Section:Dropdown(name, PlayerTable, PlayerTable[1], func)
+
+				function PlayerList:ConvertToCommand(cmdUI)
+					local command = PlayerListUI:ConvertToCommand(cmdUI)
+					return command
+				end
 
 				game.Players.PlayerAdded:Connect(function(player)
 					if Run then
@@ -4751,11 +5127,12 @@ function Library:Window(title, subtitle, Theme)
 	end
 
 	function Window:CommandBar(cmdBarName, Prefix)
+
 		local CommandBar = {}
 		local Cmds = {}
 
-		if #Prefix > 1 then
-			error('Error: Invalid input length. Please enter only a single character for the prefix.')
+		if #Prefix > 1 or #Prefix < 1 then
+			error('Error: Invalid input length. Please enter a single character for the prefix.')
 		end
 
 		local CommandBarUI = Library:New('Frame', {
@@ -4893,7 +5270,7 @@ function Library:Window(title, subtitle, Theme)
 			})
 		end)
 
-		Library:SetColor({
+		Window:SetColor({
 			Element = CommandBarUI,
 			Property = 'BackgroundColor3',
 			Color = 'WindowColor'
@@ -4991,8 +5368,8 @@ function Library:Window(title, subtitle, Theme)
 		end
 
 		function CommandBar:ChangePrefix(newPrefix)
-			if #newPrefix > 1 then
-				warn('Error: Invalid input length. Please enter only a single character for the prefix.')
+			if #newPrefix > 1 or #newPrefix < 1 then
+				warn('Error: Invalid input length. Please enter a single character for the prefix.')
 				CommandBarUI.Prefix.Text = Prefix
 			else
 				Prefix = newPrefix
@@ -5030,7 +5407,7 @@ function Library:Window(title, subtitle, Theme)
 
 		UIS.InputBegan:Connect(function(input, gameProcessed)
 			if not gameProcessed then
-				if input.KeyCode.Name == Library:CharacterToKeyCode(Prefix).Name then
+				if input.KeyCode.Name == Library:CharacterToKeyCode(Prefix:lower()).Name then
 					if CommandBarUI.Size == UDim2.new(0, 381, 0, 227) then
 						task.wait()
 						CommandBarUI.RunCommandFrame.RunCommand:CaptureFocus()
@@ -5092,7 +5469,7 @@ function Library:Window(title, subtitle, Theme)
 			})
 		end
 
-		function CommandBar:Unminimize()
+		function CommandBar:Maximize()
 			cmduiminimized = false
 			for _, func in pairs(onMinimizeFunctions2) do
 				func(cmduiminimized)
@@ -5107,7 +5484,7 @@ function Library:Window(title, subtitle, Theme)
 			if cmduiminimized then
 				CommandBar:Minimize()
 			else
-				CommandBar:Unminimize()
+				CommandBar:Maximize()
 			end
 		end)
 
@@ -5171,10 +5548,7 @@ function Library:Window(title, subtitle, Theme)
 
 			local newNames = Names
 			for i, v in pairs(newNames) do
-				newNames[i] = v:lower()
-				if v:find('%s') then
-					error('Please do not use whitespace in your command name.')
-				end
+				newNames[i] = string.gsub(v:lower(), '%s', '')
 			end
 			Names = newNames
 
@@ -5199,10 +5573,14 @@ function Library:Window(title, subtitle, Theme)
 						ArgsStr = ArgsStr..v..'>'
 					end
 				end
-				FullStr = NameStr..'  '..ArgsStr..'  |  '..Desc
+				FullStr = NameStr..'  '..ArgsStr
 			else
 				ArgsStr = ''
-				FullStr = NameStr..'  |  '..Desc
+				FullStr = NameStr
+			end
+
+			if Desc ~= '' then
+				FullStr = FullStr..'  |  '..Desc
 			end
 
 			Cmds[NameStr] = {
@@ -5247,7 +5625,7 @@ function Library:Window(title, subtitle, Theme)
 				})
 			})
 
-			Library:SetColor({
+			Window:SetColor({
 				Element = CommandButtonUI,
 				Property = 'BackgroundColor3',
 				Color = 'ElementColor'
@@ -5281,10 +5659,7 @@ function Library:Window(title, subtitle, Theme)
 				local newTable = newNames
 
 				for i, v in pairs(newTable) do
-					newTable[i] = v:lower()
-					if v:find('%s') then
-						error('Please do not use whitespace in your command name.')
-					end
+					newTable[i] = string.gsub(v:lower(), '%s', '')
 				end
 				newNames = newTable
 				Names = newNames
@@ -5330,8 +5705,8 @@ function Library:Window(title, subtitle, Theme)
 			end
 
 			function CommandButton:Remove()
-				Cmds[NameStr] = nil
 				CommandButtonUI:Destroy()
+				Cmds[NameStr] = nil
 			end
 
 			function CommandButton:GetElement()
