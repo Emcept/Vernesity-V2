@@ -2054,7 +2054,7 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				Library:AddRippleEffect(ButtonUI.Button, ButtonUI)
-				
+
 				function Button:Activate()
 					func()
 				end
@@ -2645,7 +2645,7 @@ function Library:Window(title, subtitle, Theme)
 				end)
 
 				Library:AddRippleEffect(InteractableUI.InteractableFrame:FindFirstChild'Interactable')
-				
+
 				function Interactable:Activate()
 					func()
 				end
@@ -4471,7 +4471,7 @@ function Library:Window(title, subtitle, Theme)
 							input = game:GetService('UserInputService').InputBegan:Wait()
 							Choosing = true
 						until
-						
+
 						input.KeyCode.Name ~= 'Unknown' and input.UserInputType == Enum.UserInputType.Keyboard
 						currentKey = input.KeyCode.Name
 						KeybindFrame.Text = Library:KeyCodeToCharacter(input.KeyCode):upper()
@@ -4933,6 +4933,10 @@ function Library:Window(title, subtitle, Theme)
 
 					function Dropdown_Button:GetElement()
 						return DropdownButton
+					end
+					
+					if Opened then
+						ChangeSize()
 					end
 
 					function Dropdown_Button:Edit(newName)
