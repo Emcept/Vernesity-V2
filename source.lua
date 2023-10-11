@@ -4791,6 +4791,7 @@ function Library:Window(title, subtitle, Theme)
 
 				local amountOfButtons = 0
 				local size
+				local activetweens = {}
 
 				local function ChangeSize()
 					if amountOfButtons > 5 then
@@ -4807,10 +4808,18 @@ function Library:Window(title, subtitle, Theme)
 					Library:Tween(DropdownUI, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, {
 						Size = UDim2.new(0, DropdownUI.Size.X.Offset, 0, size + 30)
 					})
-					Library:Tween(DropdownUI.InfoFrame.ArrowImage, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
+					local tween3 = Library:Tween(DropdownUI.InfoFrame.ArrowImage, 0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 						Rotation = 180,
 						ImageColor3 = Theme.SecondaryElementColor
 					})
+					resizable = false
+					table.insert(activetweens, tween3)
+					tween3.Completed:Connect(function()
+						table.remove(activetweens, table.find(activetweens, tween3))
+						if #activetweens == 0 then
+							resizable = true
+						end
+					end)
 				end
 
 				ArrowImages[DropdownUI.InfoFrame.ArrowImage] = false
@@ -4934,7 +4943,7 @@ function Library:Window(title, subtitle, Theme)
 					function Dropdown_Button:GetElement()
 						return DropdownButton
 					end
-					
+
 					if Opened then
 						ChangeSize()
 					end
