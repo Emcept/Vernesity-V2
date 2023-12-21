@@ -1134,7 +1134,7 @@ function Library:Window(title, subtitle, Theme)
 
 	local PreviousMainSize = Main.Size
 
-	function Library:Resize()
+	function Window:Resize()
 		local oldX, oldY = Main.Size.X.Offset, Main.Size.Y.Offset
 		local mousePos = Vector2.new(Mouse.X - Offset.X, Mouse.Y - Offset.Y)
 		local newSize = Vector2.new(math.clamp(mousePos.X - Main.AbsolutePosition.X, MinimumX, MaxX), math.clamp(mousePos.Y - Main.AbsolutePosition.Y ,MinimumY, MaxY))
@@ -1155,14 +1155,14 @@ function Library:Window(title, subtitle, Theme)
 		PreviousMainSize = Main.Size
 	end
 
-	function Library:StartResizing(pos)
+	function Window:StartResizing(pos)
 		local Mouse = pos
 		YOffsetSize = Main.Size.Y.Offset
 		Offset = Vector2.new(Mouse.X-(Main.AbsolutePosition.X+Main.AbsoluteSize.X),Mouse.Y-(Main.AbsolutePosition.Y+Main.AbsoluteSize.Y))
 		Resizing = true
 	end
 
-	function Library:FinishResizing()
+	function Window:FinishResizing()
 		Resizing = false
 	end
 
@@ -1172,11 +1172,11 @@ function Library:Window(title, subtitle, Theme)
 				ImageTransparency = 0
 			})
 			if resizable then
-				Library:StartResizing(input.Position)
+				Window:StartResizing(input.Position)
 			end
 			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
-					Library:FinishResizing()
+					Window:FinishResizing()
 					Library:Tween(ResizeImage, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.In, {
 						ImageTransparency = 1
 					})
@@ -1188,7 +1188,7 @@ function Library:Window(title, subtitle, Theme)
 	UIS.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			if Resizing and resizable then
-				Library:Resize()
+				Window:Resize()
 			end
 		end
 	end)
